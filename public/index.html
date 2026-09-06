@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moneo Budget Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+      form, section { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
+      label { display: block; margin-top: 8px; }
+      input, select, button { width: 100%; padding: 8px; margin-top: 4px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+  </head>
+  <body>
+    <h1>Moneo Budget Tracker</h1>
+    <p>Track pay dates, income, and allocations with monthly or bi-weekly granularity.</p>
+
+    <div class="grid">
+      <form id="paycheck-form">
+        <h2>Add Paycheck</h2>
+        <label>Date <input type="date" name="date" required /></label>
+        <label>Amount <input type="number" name="amount" min="0" step="0.01" required /></label>
+        <label>Note <input type="text" name="note" /></label>
+        <button type="submit">Save Paycheck</button>
+      </form>
+
+      <form id="allocation-form">
+        <h2>Add Allocation</h2>
+        <label>Date <input type="date" name="date" required /></label>
+        <label>Amount <input type="number" name="amount" min="0" step="0.01" required /></label>
+        <label>Type
+          <select name="type" required>
+            <option value="investment">Investment</option>
+            <option value="savings">Savings</option>
+            <option value="spending">Spending</option>
+          </select>
+        </label>
+        <label>Account <input type="text" name="account" placeholder="Brokerage, Checking, etc." /></label>
+        <label>Linked Paycheck
+          <select name="paycheckId" id="paycheck-select">
+            <option value="">Not linked</option>
+          </select>
+        </label>
+        <button type="submit">Save Allocation</button>
+      </form>
+
+      <section>
+        <h2>Summary View</h2>
+        <label>Granularity
+          <select id="granularity">
+            <option value="monthly">Monthly</option>
+            <option value="biweekly">Paycheck to Paycheck (Bi-Weekly)</option>
+          </select>
+        </label>
+        <canvas id="income-chart" height="180"></canvas>
+        <canvas id="allocation-chart" height="180"></canvas>
+      </section>
+    </div>
+
+    <section>
+      <h2>Period Breakdown</h2>
+      <table>
+        <thead>
+          <tr><th>Period</th><th>Income</th><th>Allocations</th><th>Remaining</th></tr>
+        </thead>
+        <tbody id="summary-table"></tbody>
+      </table>
+    </section>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
