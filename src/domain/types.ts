@@ -10,6 +10,8 @@ export interface Account {
   name: string;
   /** Shorter label used in split tables ("Emergency" vs "Emergency fund"). */
   shortName?: string;
+  /** What the account is for, shown under its name in split tables. */
+  purpose?: string;
   kind: AccountKind;
   institution?: string;
   /** Any CSS colour, including token references like `var(--acc)`. */
@@ -113,21 +115,34 @@ export interface NetSnapshot {
   value: Cents;
 }
 
+export type ChartMeasure = 'savingsRate' | 'spending' | 'netPosition' | 'allocation' | 'merchantSpend' | 'categoryVsPlan';
+export type ChartBucket = 'paycheque' | 'week' | 'month';
+export type ChartKind = 'line' | 'area' | 'bars' | 'stackedBars' | 'barsVsPlan' | 'allocationTicks' | 'ranked';
+export type PinSize = 'S' | 'M' | 'L';
+
 export interface ChartDef {
   id: string;
   title: string;
   question?: string;
-  measure: 'savingsRate' | 'spending' | 'netPosition' | 'allocation' | 'merchantSpend' | 'categoryVsPlan';
-  bucket: 'paycheque' | 'week' | 'month';
+  measure: ChartMeasure;
+  bucket: ChartBucket;
+  /** Number of buckets (paycheques / weeks / months); days for merchant rankings. */
   range: number;
-  kind: 'line' | 'area' | 'bars' | 'stackedBars' | 'barsVsPlan' | 'allocationTicks' | 'ranked';
+  kind: ChartKind;
   color: string;
+  /** Category for categoryVsPlan / merchantSpend. */
+  categoryId?: string;
+  /** Savings rate can be shown as a percent of net pay or as dollars saved. */
+  yAxis?: 'percent' | 'dollars';
+  /** In the series' unit: percentage points, or cents. */
   target?: number;
   showTarget: boolean;
   showNotes: boolean;
   notes: { date: ISODate; label: string }[];
   status: 'draft' | 'saved' | 'pinned';
-  pin?: { size: 'S' | 'M' | 'L'; after: string; alsoOn?: string[] };
+  /** `after` is an Overview card id (see pages/overview/layout.ts). */
+  pin?: { size: PinSize; after: string; alsoOn?: string[]; /** When it was first pinned; keeps Overview order stable. */ pinnedAt?: string };
+  editedAt: ISODate;
 }
 
 /** Everything the UI reads, loaded in one go from the repository. */

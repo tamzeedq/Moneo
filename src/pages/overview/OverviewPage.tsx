@@ -16,6 +16,8 @@ import { LatestSplitCard } from './LatestSplitCard';
 import { RecentTransactionsCard } from './RecentTransactionsCard';
 import { BudgetWatchCard } from './BudgetWatchCard';
 import { GoalsCard } from './GoalsCard';
+import { PinnedRow } from './PinnedCharts';
+import { pinnedByRow } from './layout';
 
 export function OverviewPage() {
   const data = useMoneoData();
@@ -23,6 +25,7 @@ export function OverviewPage() {
   const now = today();
   const pay = data && currentPaycheque(data.paycheques, now);
   const info = pay && periodInfo(pay, now);
+  const pinned = pinnedByRow(data?.charts ?? []);
 
   return (
     <>
@@ -51,6 +54,7 @@ export function OverviewPage() {
       {!data ? null : (
         <>
           <NetPositionCard data={data} today={now} />
+          <PinnedRow charts={pinned[0]} data={data} today={now} />
 
           <div className="grid grid-cols-[minmax(0,1fr)_300px] gap-[14px] max-lg:grid-cols-1">
             <AccountsCard data={data} today={now} />
@@ -59,18 +63,21 @@ export function OverviewPage() {
               <QuickActions />
             </div>
           </div>
+          <PinnedRow charts={pinned[1]} data={data} today={now} />
 
           <div className="grid grid-cols-3 gap-[14px] max-lg:grid-cols-1">
             <SpendingPaceCard data={data} today={now} />
             <CategoryCard data={data} today={now} />
             <LatestSplitCard data={data} today={now} />
           </div>
+          <PinnedRow charts={pinned[2]} data={data} today={now} />
 
           <div className="grid grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,1fr)] gap-[14px] max-lg:grid-cols-1">
             <RecentTransactionsCard data={data} today={now} />
             <BudgetWatchCard data={data} today={now} />
             <GoalsCard data={data} />
           </div>
+          <PinnedRow charts={pinned[3]} data={data} today={now} />
         </>
       )}
     </>

@@ -9,6 +9,7 @@ import type {
   BalanceSnapshot,
   Bill,
   BudgetLine,
+  ChartDef,
   Category,
   Cents,
   Goal,
@@ -24,7 +25,7 @@ import { toCents } from '@/domain/money';
 export const PROFILE = { name: 'Sam' };
 
 /** Bump when the seed changes so existing local databases are reseeded (POC only). */
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 8;
 
 export const SEED_TODAY = '2025-10-04';
 const CURRENT_PAY_DATE = '2025-09-26';
@@ -32,12 +33,12 @@ const CURRENT_PAY_DATE = '2025-09-26';
 // ─── Accounts ────────────────────────────────────────────────────────────────
 
 const accounts: Account[] = [
-  { id: 'chequing', name: 'Chequing', kind: 'chequing', color: 'var(--inv)', balance: 341210, order: 0, splitOrder: 0 },
-  { id: 'tfsa', name: 'TFSA', kind: 'tfsa', color: 'var(--acc)', balance: 2324055, order: 1, splitOrder: 1 },
-  { id: 'emergency', name: 'Emergency fund', shortName: 'Emergency', kind: 'emergency', color: '#8fae8f', balance: 842000, order: 2, splitOrder: 3 },
-  { id: 'rrsp', name: 'RRSP', kind: 'rrsp', color: '#7f95ab', balance: 1410280, order: 3, splitOrder: 4 },
-  { id: 'spending', name: 'Spending', kind: 'spending', color: '#d8b67a', balance: 48620, order: 4, splitOrder: 2 },
-  { id: 'visa', name: 'Visa', kind: 'credit', color: '#a8a29a', balance: -144525, order: 5 },
+  { id: 'chequing', name: 'Chequing', purpose: 'Bills & fixed costs', kind: 'chequing', color: 'var(--inv)', balance: 341210, order: 0, splitOrder: 0 },
+  { id: 'tfsa', name: 'TFSA', purpose: 'Investing', kind: 'tfsa', color: 'var(--acc)', balance: 2324055, order: 1, splitOrder: 1 },
+  { id: 'emergency', name: 'Emergency fund', shortName: 'Emergency', purpose: 'Savings goal', kind: 'emergency', color: '#8fae8f', balance: 842000, order: 2, splitOrder: 3 },
+  { id: 'rrsp', name: 'RRSP', purpose: 'Retirement', kind: 'rrsp', color: '#7f95ab', balance: 1410280, order: 3, splitOrder: 4 },
+  { id: 'spending', name: 'Spending', purpose: 'Day-to-day spending', kind: 'spending', color: '#d8b67a', balance: 48620, order: 4, splitOrder: 2 },
+  { id: 'visa', name: 'Visa', purpose: 'Credit card', kind: 'credit', color: '#a8a29a', balance: -144525, order: 5 },
 ];
 
 /** Change in balance over the current pay period (drives the deltas and sparklines). */
@@ -98,14 +99,14 @@ function addPaycheque(payDate: string, net: Cents, amounts: Record<string, numbe
     periodStart: payDate,
     periodEnd: addDaysISO(payDate, 13),
     net,
-    gross: net === NET ? 368000 : undefined,
+    gross: net === NET ? 361538 : undefined,
     deductions:
       net === NET
         ? [
-            { label: 'Income tax', amount: 64200 },
-            { label: 'CPP', amount: 20700 },
-            { label: 'EI', amount: 6000 },
-            { label: 'Benefits', amount: 13100 },
+            { label: 'Income tax', amount: 61240 },
+            { label: 'CPP', amount: 19820 },
+            { label: 'EI', amount: 5962 },
+            { label: 'Benefits', amount: 10516 },
           ]
         : undefined,
     depositAccountId: 'chequing',
@@ -124,10 +125,10 @@ function addPaycheque(payDate: string, net: Cents, amounts: Record<string, numbe
     const payDate = addDaysISO(CURRENT_PAY_DATE, -14 * (total - 1 - k));
     const fromLatest = total - 1 - k;
     if (fromLatest === 0) addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 520, emergency: 120 });
-    else if (fromLatest === 1) addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 520, emergency: 120, rrsp: 320 });
-    else if (fromLatest === 2) addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 720, emergency: 120, rrsp: 120 });
+    // Sep 12 and Aug 29 each save $920 (35%): with Sep 26's 26.5% the 3-paycheque average is 32%.
+    else if (fromLatest === 1 || fromLatest === 2) addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 620, emergency: 120, rrsp: 220 });
     else if (payDate === '2025-08-15')
-      addPaycheque(payDate, 314000, { chequing: 1100, tfsa: 1080, spending: 520, emergency: 120, rrsp: 320 }, 'Includes $500 bonus');
+      addPaycheque(payDate, 314000, { chequing: 1100, tfsa: 580, spending: 1020, emergency: 120, rrsp: 320 }, 'Included $500 bonus');
     else {
       // Older paycheques: savings follow the historic rate, split 60/15/25 across TFSA/Emergency/RRSP.
       const saved = Math.round((historicRates[k] / 100) * 2640 / 10) * 10;
@@ -293,6 +294,52 @@ const netSnapshots: NetSnapshot[] = (() => {
   return out;
 })();
 
+// ─── Charts (6a library) ─────────────────────────────────────────────────────
+
+const chart = (c: Partial<ChartDef> & Pick<ChartDef, 'id' | 'title' | 'measure' | 'bucket' | 'range' | 'kind'>): ChartDef => ({
+  color: 'var(--acc)',
+  showTarget: false,
+  showNotes: false,
+  notes: [],
+  status: 'saved',
+  editedAt: SEED_TODAY,
+  ...c,
+});
+
+/** Pinned charts sit after Goals so the top of the Overview matches 4a. */
+const charts: ChartDef[] = [
+  chart({
+    id: 'savings-rate', title: 'Savings rate by paycheque', question: 'Am I saving more?', measure: 'savingsRate', bucket: 'paycheque',
+    range: 12, kind: 'line', yAxis: 'percent', target: 30, showTarget: true, showNotes: true, status: 'pinned',
+    pin: { size: 'M', after: 'goals', pinnedAt: '2025-06-01T12:00:00Z' }, editedAt: SEED_TODAY,
+    notes: [
+      { date: '2025-08-15', label: 'Bonus +$500' },
+      { date: '2025-07-04', label: 'Raise · 4%' },
+      { date: '2025-04-11', label: 'Car repair' },
+    ],
+  }),
+  chart({
+    id: 'monthly-spending', title: 'Monthly spending by category', question: 'Where does my money go?', measure: 'spending',
+    bucket: 'month', range: 6, kind: 'stackedBars', status: 'pinned', pin: { size: 'L', after: 'goals', pinnedAt: '2025-06-03T12:00:00Z' }, editedAt: '2025-09-30',
+  }),
+  chart({
+    id: 'dining-plan', title: 'Dining vs. plan', question: 'Am I sticking to plan?', measure: 'categoryVsPlan', categoryId: 'dining',
+    bucket: 'month', range: 6, kind: 'barsVsPlan', status: 'draft', editedAt: '2025-09-22',
+  }),
+  chart({
+    id: 'net-position', title: 'Net position', question: 'Is my net position growing?', measure: 'netPosition', bucket: 'month',
+    range: 12, kind: 'area', color: '#8fae8f', status: 'pinned', pin: { size: 'M', after: 'goals', pinnedAt: '2025-06-02T12:00:00Z' }, editedAt: '2025-08-14',
+  }),
+  chart({
+    id: 'paycheque-split', title: 'Where each paycheque goes', question: 'Where does each paycheque go?', measure: 'allocation',
+    bucket: 'paycheque', range: 1, kind: 'allocationTicks', status: 'saved', pin: { size: 'M', after: '', alsoOn: ['paycheques'] }, editedAt: '2025-10-04',
+  }),
+  chart({
+    id: 'grocery-merchants', title: 'Top grocery merchants', question: 'Where do I shop most?', measure: 'merchantSpend',
+    categoryId: 'groceries', bucket: 'month', range: 91, kind: 'ranked', status: 'draft', editedAt: '2025-07-30',
+  }),
+];
+
 export function buildSeed(): MoneoData {
   return {
     accounts,
@@ -306,6 +353,6 @@ export function buildSeed(): MoneoData {
     bills,
     balanceSnapshots,
     netSnapshots,
-    charts: [],
+    charts,
   };
 }

@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { Toaster } from '@/components/ui/Toaster';
 
 export function AppShell() {
   return (
@@ -8,6 +9,7 @@ export function AppShell() {
       <main className="flex min-w-0 flex-col gap-[14px] px-7 pt-[22px] pb-7">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   );
 }

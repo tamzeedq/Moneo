@@ -26,22 +26,27 @@ export function NextPaychequeCard({ data, today }: { data: MoneoData; today: ISO
 
   const info = periodInfo(pay, today);
   const days = info.daysUntilNext;
+  const planned = data.paycheques.find((p) => p.payDate === info.nextPayDate);
   return (
     <div className={invCard}>
       <div className="flex justify-between text-[12px] text-inv-mute">
         <span>Next paycheque</span>
         <span>{days === 0 ? 'today' : `in ${days} day${days === 1 ? '' : 's'}`}</span>
       </div>
-      <div className="text-[28px] font-medium tracking-[-0.04em]">{money(pay.net)}</div>
+      <div className="text-[28px] font-medium tracking-[-0.04em]">{money(planned?.net ?? pay.net)}</div>
       <div className="flex h-[5px] gap-[3px] overflow-hidden rounded-[3px]" aria-label={`Day ${info.elapsed} of ${info.length}`}>
         <div className="bg-acc" style={{ flex: info.elapsed }} />
         <div className="bg-inv-track" style={{ flex: info.length - info.elapsed }} />
       </div>
       <div className="flex items-center justify-between text-[12px] text-inv-mute">
         <span>
-          {dayShortDate(info.nextPayDate)} · {pay.source}
+          {dayShortDate(info.nextPayDate)} · {planned?.source ?? pay.source}
         </span>
-        <Link to="/paycheques/new/details" className={accButton}>Plan →</Link>
+        {planned ? (
+          <span className="rounded-[9px] px-2.5 py-1.5 text-[12px] font-medium text-inv-ink">Planned ✓</span>
+        ) : (
+          <Link to="/paycheques/new/details" className={accButton}>Plan →</Link>
+        )}
       </div>
     </div>
   );
