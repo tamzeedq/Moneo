@@ -25,7 +25,7 @@ import { toCents } from '@/domain/money';
 export const PROFILE = { name: 'Sam' };
 
 /** Bump when the seed changes so existing local databases are reseeded (POC only). */
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 9;
 
 export const SEED_TODAY = '2025-10-04';
 const CURRENT_PAY_DATE = '2025-09-26';
@@ -294,6 +294,27 @@ const netSnapshots: NetSnapshot[] = (() => {
   return out;
 })();
 
+/**
+ * Weekly balances before the recent 20-point window, so the Accounts chart can show 6M/1Y/All.
+ * Each account follows the net-position trend from its first recent snapshot, with a little noise.
+ */
+const olderSnapshots: BalanceSnapshot[] = (() => {
+  const out: BalanceSnapshot[] = [];
+  accounts.forEach((a, i) => {
+    const recent = balanceSnapshots.filter((b) => b.accountId === a.id).sort((x, y) => x.date.localeCompare(y.date));
+    const anchor = recent[0];
+    const netAt = (d: string) => [...netSnapshots].reverse().find((n) => n.date <= d)?.value ?? netSnapshots[0].value;
+    const base = netAt(anchor.date);
+    const r = rng(300 + i * 17);
+    for (const n of netSnapshots) {
+      if (n.date >= anchor.date) break;
+      const v = anchor.balance * (n.value / base) + (r() - 0.5) * Math.abs(anchor.balance) * 0.03;
+      out.push({ accountId: a.id, date: n.date, balance: Math.round(v) });
+    }
+  });
+  return out;
+})();
+
 // ─── Charts (6a library) ─────────────────────────────────────────────────────
 
 const chart = (c: Partial<ChartDef> & Pick<ChartDef, 'id' | 'title' | 'measure' | 'bucket' | 'range' | 'kind'>): ChartDef => ({
@@ -351,7 +372,7 @@ export function buildSeed(): MoneoData {
     goals,
     templates,
     bills,
-    balanceSnapshots,
+    balanceSnapshots: [...olderSnapshots, ...balanceSnapshots],
     netSnapshots,
     charts,
   };

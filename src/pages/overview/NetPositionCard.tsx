@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { eachMonthOfInterval, format } from 'date-fns';
-import type { ISODate, MoneoData, NetSnapshot } from '@/domain/types';
+import type { ISODate, MoneoData } from '@/domain/types';
 import { money } from '@/domain/money';
 import { parse } from '@/domain/dates';
 import {
@@ -13,7 +13,7 @@ import { Segmented } from '@/components/ui/Segmented';
 const RANGES: NetRange[] = ['1M', '6M', '1Y', 'All'];
 
 /** Up to 6 x-axis labels: month names for long ranges, dates for short ones. */
-function axisLabels(points: NetSnapshot[]): string[] {
+export function axisLabels(points: { date: string }[]): string[] {
   if (points.length < 2) return [];
   const start = parse(points[0].date), end = parse(points[points.length - 1].date);
   const months = eachMonthOfInterval({ start, end }).slice(1);

@@ -53,7 +53,7 @@ export function LatestSplitCard({ data, today }: { data: MoneoData; today: ISODa
       </div>
       {unallocated > 0 && (
         <Link
-          to="/paycheques"
+          to={`/paycheques?id=${pay.id}`}
           className="rounded-[10px] border border-acc p-2 text-center text-[12px] font-medium text-acc hover:bg-[color-mix(in_srgb,var(--acc)_8%,transparent)]"
         >
           Finish allocating

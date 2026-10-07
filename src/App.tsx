@@ -8,6 +8,9 @@ import { ChartLibrary } from '@/pages/charts/ChartLibrary';
 import { NewChart } from '@/pages/charts/NewChart';
 import { ChartEditor } from '@/pages/charts/ChartEditor';
 import { PinChart } from '@/pages/charts/PinChart';
+import { PaychequesPage } from '@/pages/paycheques/PaychequesPage';
+import { BudgetPage } from '@/pages/budget/BudgetPage';
+import { AccountsPage } from '@/pages/accounts/AccountsPage';
 import { applyTheme, useUI } from '@/stores/ui';
 
 const router = createBrowserRouter([
@@ -15,10 +18,10 @@ const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { path: '/', element: <OverviewPage /> },
-      { path: '/paycheques', element: <PlaceholderPage title="Paycheques" /> },
+      { path: '/paycheques', element: <PaychequesPage /> },
       { path: '/paycheques/new/:step?', element: <PaychequeWizard /> },
-      { path: '/budget', element: <PlaceholderPage title="Budget" /> },
-      { path: '/accounts', element: <PlaceholderPage title="Accounts" /> },
+      { path: '/budget', element: <BudgetPage /> },
+      { path: '/accounts', element: <AccountsPage /> },
       { path: '/charts', element: <ChartLibrary /> },
       { path: '/charts/new', element: <NewChart /> },
       { path: '/charts/:id', element: <ChartEditor /> },

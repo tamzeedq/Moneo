@@ -10,6 +10,8 @@ interface Props {
   net: Cents;
   onChange: (a: Record<string, Cents>) => void;
   height?: number;
+  /** 'ticks' = 60-tick bar (5b); 'blocks' = labelled blocks with a hatched remainder (3b). */
+  variant?: 'ticks' | 'blocks';
 }
 
 const SNAP = 1000; // $10
@@ -18,7 +20,7 @@ const SNAP = 1000; // $10
  * 60-tick allocation bar with draggable dividers (from 3b). Each divider moves money between the two
  * accounts either side of it; the last one trades with the unallocated remainder. Arrow keys move $10.
  */
-export function AllocationBar({ accounts, allocations, net, onChange, height = 34 }: Props) {
+export function AllocationBar({ accounts, allocations, net, onChange, height = 34, variant = 'ticks' }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const order = accounts.map((a) => a.id);
   const amounts = order.map((id) => allocations[id] ?? 0);
@@ -39,7 +41,11 @@ export function AllocationBar({ accounts, allocations, net, onChange, height = 3
 
   return (
     <div ref={ref} className="relative">
-      <TickBar total={total} height={height} segments={accounts.map((a, i) => ({ amount: amounts[i], color: a.color }))} />
+      {variant === 'ticks' ? (
+        <TickBar total={total} height={height} segments={accounts.map((a, i) => ({ amount: amounts[i], color: a.color }))} />
+      ) : (
+        <Blocks accounts={accounts} amounts={amounts} total={total} height={height} />
+      )}
       {cumulative.map((c, i) => (
         <div
           key={order[i]}
@@ -65,9 +71,49 @@ export function AllocationBar({ accounts, allocations, net, onChange, height = 3
             setBoundary(i, c + d * (e.shiftKey ? 10 : 1));
           }}
         >
-          <span className="h-full w-0.5 rounded-full bg-ink opacity-0 transition-opacity group-hover:opacity-60 group-focus-visible:opacity-100" />
+          {variant === 'ticks' ? (
+            <span className="h-full w-0.5 rounded-full bg-ink opacity-0 transition-opacity group-hover:opacity-60 group-focus-visible:opacity-100" />
+          ) : (
+            <span className="my-1.5 w-1 rounded-full bg-panel shadow-[0_0_0_1px_var(--line)] group-hover:bg-ink group-focus-visible:bg-acc" />
+          )}
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Text colour that reads on each account colour (ink on light tints, white on terracotta, invInk on inv). */
+export const onColor = (color: string) => (color === 'var(--inv)' ? 'var(--inv-ink)' : color === 'var(--acc)' ? '#ffffff' : '#17181a');
+
+function Blocks({ accounts, amounts, total, height }: { accounts: Account[]; amounts: Cents[]; total: Cents; height: number }) {
+  const left = Math.max(total - sum(amounts), 0);
+  return (
+    <div className="flex overflow-hidden rounded-[14px]" style={{ height }} aria-hidden>
+      {accounts.map((a, i) => {
+        const share = amounts[i] / total;
+        if (!amounts[i]) return null;
+        return (
+          <div
+            key={a.id}
+            className="flex min-w-0 flex-none flex-col justify-between overflow-hidden px-3.5 py-3 shadow-[inset_-2px_0_0_var(--panel)] transition-[width] duration-150"
+            style={{ width: `${share * 100}%`, background: a.color, color: onColor(a.color) }}
+          >
+            {share >= 0.09 && (
+              <>
+                <span className="truncate text-[12px] opacity-80">{a.shortName ?? a.name}</span>
+                <span className="text-[18px] font-medium tracking-[-0.03em]">{money(amounts[i], { decimals: 0 })}</span>
+              </>
+            )}
+          </div>
+        );
+      })}
+      {left > 0 && (
+        <div
+          className="flex-none"
+          style={{ width: `${(left / total) * 100}%`, background: 'repeating-linear-gradient(135deg, var(--track) 0 6px, transparent 6px 12px)' }}
+          title={`${money(left)} unallocated`}
+        />
+      )}
     </div>
   );
 }

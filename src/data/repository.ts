@@ -1,4 +1,4 @@
-import type { ChartDef, MoneoData, SplitTemplate } from '@/domain/types';
+import type { Account, BudgetLine, Cents, ChartDef, ISODate, MoneoData, SplitTemplate } from '@/domain/types';
 import type { PaychequeRecords } from '@/domain/wizard';
 import { buildSeed, SEED_VERSION } from './seed';
 import { db, type MoneoDB } from './db';
@@ -15,6 +15,13 @@ export interface Repository {
   saveTemplate(t: SplitTemplate): Promise<void>;
   saveChart(c: ChartDef): Promise<void>;
   deleteChart(id: string): Promise<void>;
+  /** Replaces a paycheque's allocations. */
+  setAllocations(paychequeId: string, amounts: Record<string, Cents>): Promise<void>;
+  /** Replaces a paycheque's budget lines. */
+  setBudget(paychequeId: string, lines: Omit<BudgetLine, 'paychequeId'>[]): Promise<void>;
+  /** Sets an account's balance and records it as today's snapshot (and today's net position). */
+  updateBalance(accountId: string, balance: Cents, date: ISODate): Promise<void>;
+  addAccount(a: Account, date: ISODate): Promise<void>;
 }
 
 const TABLES: (keyof MoneoData)[] = [
@@ -43,6 +50,36 @@ export function dexieRepository(database: MoneoDB = db): Repository {
     },
     async deleteChart(id) {
       await database.charts.delete(id);
+    },
+    async setAllocations(paychequeId, amounts) {
+      await database.transaction('rw', database.allocations, async () => {
+        await database.allocations.where('paychequeId').equals(paychequeId).delete();
+        await database.allocations.bulkAdd(
+          Object.entries(amounts).filter(([, amount]) => amount > 0).map(([accountId, amount]) => ({ paychequeId, accountId, amount })),
+        );
+      });
+    },
+    async setBudget(paychequeId, lines) {
+      await database.transaction('rw', database.budgetLines, async () => {
+        await database.budgetLines.where('paychequeId').equals(paychequeId).delete();
+        await database.budgetLines.bulkAdd(lines.filter((l) => l.plan > 0).map((l) => ({ ...l, paychequeId })));
+      });
+    },
+    async updateBalance(accountId, balance, date) {
+      await database.transaction('rw', database.accounts, database.balanceSnapshots, database.netSnapshots, async () => {
+        await database.accounts.update(accountId, { balance });
+        await database.balanceSnapshots.put({ accountId, date, balance });
+        const all = await database.accounts.toArray();
+        await database.netSnapshots.put({ date, value: all.reduce((t, a) => t + a.balance, 0) });
+      });
+    },
+    async addAccount(a, date) {
+      await database.transaction('rw', database.accounts, database.balanceSnapshots, database.netSnapshots, async () => {
+        await database.accounts.add(a);
+        await database.balanceSnapshots.put({ accountId: a.id, date, balance: a.balance });
+        const all = await database.accounts.toArray();
+        await database.netSnapshots.put({ date, value: all.reduce((t, x) => t + x.balance, 0) });
+      });
     },
     async resetToSeed() {
       const seed = buildSeed();

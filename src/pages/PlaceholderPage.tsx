@@ -8,7 +8,7 @@ export function PlaceholderPage({ title, crumb }: { title: string; crumb?: strin
     <>
       <PageHeader title={title} crumb={crumb} actions={<ThemeToggle />} />
       <Card className="text-[13px] text-mute">
-        This screen is coming in the next step of the build. <Link to="/" className="text-acc">Back to Overview →</Link>
+        There’s nothing at this address. <Link to="/" className="text-acc">Back to Overview →</Link>
       </Card>
     </>
   );

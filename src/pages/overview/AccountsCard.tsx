@@ -26,7 +26,7 @@ export function AccountsCard({ data, today }: { data: MoneoData; today: ISODate 
           const color = delta >= 0 ? 'var(--pos)' : 'var(--acc)';
           const series = snapshotsFor(data.balanceSnapshots, a.id).filter((s) => s.date <= today).map((s) => s.balance);
           return (
-            <div key={a.id} className="flex flex-col gap-2 rounded-[14px] border border-line px-3.5 py-3">
+            <Link key={a.id} to={`/accounts?id=${a.id}`} className="flex flex-col gap-2 rounded-[14px] border border-line px-3.5 py-3 hover:border-faint">
               <div className="flex items-center gap-2 text-[13px]">
                 <Swatch color={a.color} />
                 <span className="font-medium">{a.name}</span>
@@ -40,7 +40,7 @@ export function AccountsCard({ data, today }: { data: MoneoData; today: ISODate 
                 </div>
                 <Sparkline values={series} color={color} />
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

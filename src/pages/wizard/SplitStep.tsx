@@ -12,11 +12,8 @@ import { Stepper } from '@/components/ui/Stepper';
 import { Swatch } from '@/components/ui/Avatar';
 import { btn, chip } from '@/components/ui/styles';
 import { useWizard } from '@/stores/wizard';
-import { AllocationBar } from './AllocationBar';
+import { AllocationBar, onColor } from './AllocationBar';
 import { toneColor, WizardFooter } from './WizardFooter';
-
-/** Text colour that reads on each account colour (ink on light tints, white on terracotta, invInk on inv). */
-const onColor = (color: string) => (color === 'var(--inv)' ? 'var(--inv-ink)' : color === 'var(--acc)' ? '#ffffff' : '#17181a');
 
 const cols = 'grid grid-cols-[minmax(0,1fr)_110px_132px_110px] gap-3.5';
 

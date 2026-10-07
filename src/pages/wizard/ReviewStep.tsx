@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import * as Dialog from '@radix-ui/react-dialog';
 import type { MoneoData } from '@/domain/types';
 import { money, sum } from '@/domain/money';
-import { dayShortDate, shortDate, today } from '@/domain/dates';
+import { dayShortDate, shortDate } from '@/domain/dates';
 import {
   draftPool, draftToRecords, payPeriod, savingsOf, splitAccounts, splitStatus, type PaychequeDraft,
 } from '@/domain/wizard';
@@ -11,7 +10,8 @@ import { repo } from '@/data/repository';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Swatch } from '@/components/ui/Avatar';
 import { Switch } from '@/components/ui/Switch';
-import { btn, field } from '@/components/ui/styles';
+import { btn } from '@/components/ui/styles';
+import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { useWizard } from '@/stores/wizard';
 import { toast } from '@/stores/toast';
 import { toneColor, WizardFooter } from './WizardFooter';
@@ -151,7 +151,7 @@ export function ReviewStep({ data, draft }: { data: MoneoData; draft: PaychequeD
       </div>
 
       <WizardFooter left={<Link to="/paycheques/new/budget" className={btn.secondary}>← Back</Link>}>
-        <SaveTemplateDialog data={data} draft={draft} />
+        <SaveTemplateDialog data={data} amounts={draft.allocations} from={`the ${shortDate(draft.payDate)} paycheque`} />
         <button type="button" className={btn.accent} onClick={save} disabled={saving || !status.canContinue}>
           {saving ? 'Saving…' : 'Save paycheque'}
         </button>
@@ -177,58 +177,5 @@ function Summary({
         {sub}
       </div>
     </div>
-  );
-}
-
-function SaveTemplateDialog({ data, draft }: { data: MoneoData; draft: PaychequeDraft }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const save = async () => {
-    const id = 't-' + Date.now().toString(36);
-    await repo.saveTemplate({
-      id,
-      name: name.trim(),
-      description: `Saved ${shortDate(today())} from the ${shortDate(draft.payDate)} paycheque`,
-      amounts: { ...draft.allocations },
-      order: Math.max(0, ...data.templates.filter((t) => t.id !== 'blank').map((t) => t.order)) + 0.5,
-    });
-    toast(`Template “${name.trim()}” saved`);
-    setOpen(false);
-    setName('');
-  };
-  return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <button type="button" className={btn.secondary + ' py-2.5'}>
-          Save as template
-        </button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[380px] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-[18px] border border-line bg-panel p-[22px] text-ink">
-          <Dialog.Title className="m-0 text-[16px] font-semibold">Save split as a template</Dialog.Title>
-          <Dialog.Description className="m-0 text-[13px] text-mute">It will appear under “Start the split from” next time.</Dialog.Description>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (name.trim()) void save();
-            }}
-          >
-            <input autoFocus className={field} placeholder="Template name" value={name} onChange={(e) => setName(e.target.value)} />
-            <div className="flex justify-end gap-2">
-              <Dialog.Close asChild>
-                <button type="button" className={btn.secondary}>
-                  Cancel
-                </button>
-              </Dialog.Close>
-              <button type="submit" className={btn.primary} disabled={!name.trim()}>
-                Save template
-              </button>
-            </div>
-          </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
   );
 }

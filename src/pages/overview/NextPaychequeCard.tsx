@@ -58,7 +58,7 @@ export function QuickActions() {
   return (
     <div className="grid grid-cols-2 gap-2 text-[12px]">
       <button type="button" className={action}>+ Transaction</button>
-      <button type="button" className={action}>Update balance</button>
+      <Link to="/accounts?update=chequing" className={action}>Update balance</Link>
       <button type="button" className={action}>Import CSV</button>
       <Link to="/charts/new" className={action}>New chart</Link>
     </div>
