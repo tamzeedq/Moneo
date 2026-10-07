@@ -1,4 +1,4 @@
-import type { Account, BudgetLine, Cents, ChartDef, ISODate, MoneoData, SplitTemplate } from '@/domain/types';
+import type { Account, BudgetLine, Cents, ChartDef, ISODate, MoneoData, SplitTemplate, Transaction } from '@/domain/types';
 import type { PaychequeRecords } from '@/domain/wizard';
 import { buildSeed, SEED_VERSION } from './seed';
 import { db, type MoneoDB } from './db';
@@ -22,9 +22,13 @@ export interface Repository {
   /** Sets an account's balance and records it as today's snapshot (and today's net position). */
   updateBalance(accountId: string, balance: Cents, date: ISODate): Promise<void>;
   addAccount(a: Account, date: ISODate): Promise<void>;
+  /** Adds transactions; optionally moves each account's balance by their total (recorded as `date`). */
+  addTransactions(txs: Transaction[], opts: { adjustBalances: boolean; date: ISODate }): Promise<void>;
+  /** Replaces everything with the given data (backup restore). */
+  replaceAll(data: MoneoData): Promise<void>;
 }
 
-const TABLES: (keyof MoneoData)[] = [
+export const TABLES: (keyof MoneoData)[] = [
   'accounts', 'paycheques', 'allocations', 'categories', 'budgetLines', 'transactions',
   'goals', 'templates', 'bills', 'balanceSnapshots', 'netSnapshots', 'charts',
 ];
@@ -81,14 +85,32 @@ export function dexieRepository(database: MoneoDB = db): Repository {
         await database.netSnapshots.put({ date, value: all.reduce((t, x) => t + x.balance, 0) });
       });
     },
-    async resetToSeed() {
-      const seed = buildSeed();
+    async addTransactions(txs, { adjustBalances, date }) {
+      await database.transaction('rw', [database.transactions, database.accounts, database.balanceSnapshots, database.netSnapshots], async () => {
+        await database.transactions.bulkAdd(txs);
+        if (!adjustBalances) return;
+        const byAccount = new Map<string, Cents>();
+        for (const t of txs) byAccount.set(t.accountId, (byAccount.get(t.accountId) ?? 0) + t.amount);
+        for (const [accountId, delta] of byAccount) {
+          const a = await database.accounts.get(accountId);
+          if (!a) continue;
+          await database.accounts.update(accountId, { balance: a.balance + delta });
+          await database.balanceSnapshots.put({ accountId, date, balance: a.balance + delta });
+        }
+        const all = await database.accounts.toArray();
+        await database.netSnapshots.put({ date, value: all.reduce((t, x) => t + x.balance, 0) });
+      });
+    },
+    async replaceAll(data) {
       await database.transaction('rw', TABLES.map((t) => database.table(t)), async () => {
         for (const t of TABLES) {
           await database.table(t).clear();
-          await database.table(t).bulkAdd(seed[t] as unknown[]);
+          await database.table(t).bulkAdd((data[t] ?? []) as unknown[]);
         }
       });
+    },
+    async resetToSeed() {
+      await this.replaceAll(buildSeed());
     },
   };
 }

@@ -11,6 +11,8 @@ import { PinChart } from '@/pages/charts/PinChart';
 import { PaychequesPage } from '@/pages/paycheques/PaychequesPage';
 import { BudgetPage } from '@/pages/budget/BudgetPage';
 import { AccountsPage } from '@/pages/accounts/AccountsPage';
+import { ImportExportPage } from '@/pages/import/ImportExportPage';
+import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { applyTheme, useUI } from '@/stores/ui';
 
 const router = createBrowserRouter([
@@ -26,6 +28,8 @@ const router = createBrowserRouter([
       { path: '/charts/new', element: <NewChart /> },
       { path: '/charts/:id', element: <ChartEditor /> },
       { path: '/charts/:id/pin', element: <PinChart /> },
+      { path: '/import', element: <ImportExportPage /> },
+      { path: '/settings', element: <SettingsPage /> },
       { path: '*', element: <PlaceholderPage title="Not found" /> },
     ],
   },

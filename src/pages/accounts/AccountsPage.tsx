@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import * as Dialog from '@radix-ui/react-dialog';
 import { useMoneoData } from '@/data/hooks';
 import { repo } from '@/data/repository';
 import type { Account, AccountKind, MoneoData } from '@/domain/types';
@@ -19,6 +18,7 @@ import { Swatch } from '@/components/ui/Avatar';
 import { Sparkline } from '@/components/charts/Sparkline';
 import { AreaLineChart } from '@/components/charts/AreaLineChart';
 import { btn, field } from '@/components/ui/styles';
+import { ModalForm } from '@/components/ui/ModalForm';
 import { axisLabels } from '@/pages/overview/NetPositionCard';
 import { toast } from '@/stores/toast';
 
@@ -237,49 +237,5 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
         <input id="acct-bal" inputMode="decimal" className={field} placeholder="0.00" value={text} onChange={(e) => setText(e.target.value)} />
       </Field>
     </ModalForm>
-  );
-}
-
-function ModalForm({
-  open, onOpenChange, trigger, title, description, submitLabel, canSubmit, onSubmit, children,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  trigger: React.ReactNode;
-  title: string;
-  description: string;
-  submitLabel: string;
-  canSubmit: boolean;
-  onSubmit: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[380px] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-[18px] border border-line bg-panel p-[22px] text-ink">
-          <Dialog.Title className="m-0 text-[16px] font-semibold">{title}</Dialog.Title>
-          <Dialog.Description className="m-0 text-[13px] text-mute">{description}</Dialog.Description>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (canSubmit) onSubmit();
-            }}
-          >
-            {children}
-            <div className="flex justify-end gap-2">
-              <Dialog.Close asChild>
-                <button type="button" className={btn.secondary}>Cancel</button>
-              </Dialog.Close>
-              <button type="submit" className={btn.primary} disabled={!canSubmit}>
-                {submitLabel}
-              </button>
-            </div>
-          </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
   );
 }

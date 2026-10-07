@@ -3,6 +3,7 @@ import type { ISODate, MoneoData } from '@/domain/types';
 import { money } from '@/domain/money';
 import { dayShortDate } from '@/domain/dates';
 import { currentPaycheque, periodInfo } from '@/domain/selectors';
+import { useDialogs } from '@/stores/ui';
 
 const invCard = 'flex flex-col gap-2.5 rounded-[18px] bg-inv px-5 py-[18px] text-inv-ink';
 const accButton = 'rounded-[9px] bg-acc px-2.5 py-1.5 text-[12px] font-medium text-white';
@@ -55,11 +56,12 @@ export function NextPaychequeCard({ data, today }: { data: MoneoData; today: ISO
 const action = 'rounded-[12px] border border-line bg-panel px-3 py-[11px] text-left hover:border-faint';
 
 export function QuickActions() {
+  const openDialog = useDialogs((s) => s.open);
   return (
     <div className="grid grid-cols-2 gap-2 text-[12px]">
-      <button type="button" className={action}>+ Transaction</button>
+      <button type="button" className={action} onClick={() => openDialog('transaction')}>+ Transaction</button>
       <Link to="/accounts?update=chequing" className={action}>Update balance</Link>
-      <button type="button" className={action}>Import CSV</button>
+      <Link to="/import" className={action}>Import CSV</Link>
       <Link to="/charts/new" className={action}>New chart</Link>
     </div>
   );

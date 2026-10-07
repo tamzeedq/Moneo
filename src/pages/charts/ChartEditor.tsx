@@ -19,6 +19,7 @@ import { MiniChart } from '@/components/charts/MiniChart';
 import { SeriesPlot } from '@/components/charts/SeriesPlot';
 import { btn, chip, field } from '@/components/ui/styles';
 import { toast } from '@/stores/toast';
+import { downloadFile, slug } from '@/components/download';
 import { toneVar } from './shared';
 
 const inputCls = `${field} py-[9px]! text-[13px]!`;
@@ -71,15 +72,7 @@ export function ChartEditor() {
     update({ ...defaultsFor(measure), measure, color: def.color, notes: def.notes, ...(isDefaultTitle ? { title: q.def.title, question: q.question } : {}) });
   };
 
-  const exportCsv = () => {
-    const blob = new Blob([chartCsv(def, result)], { type: 'text/csv' });
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(blob),
-      download: def.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.csv',
-    });
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
+  const exportCsv = () => downloadFile(`${slug(def.title)}.csv`, chartCsv(def, result), 'text/csv');
 
   const remove = async () => {
     if (!window.confirm(`Delete “${def.title}”? This can’t be undone.`)) return;

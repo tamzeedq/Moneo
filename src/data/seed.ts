@@ -22,8 +22,6 @@ import type {
 import { addDaysISO, daysBetween } from '@/domain/dates';
 import { toCents } from '@/domain/money';
 
-export const PROFILE = { name: 'Sam' };
-
 /** Bump when the seed changes so existing local databases are reseeded (POC only). */
 export const SEED_VERSION = 9;
 

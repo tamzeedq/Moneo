@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useMoneoData } from '@/data/hooks';
-import { PROFILE } from '@/data/seed';
 import { greeting, longDay, today } from '@/domain/dates';
 import { currentPaycheque, periodInfo } from '@/domain/selectors';
 import { PageHeader } from '@/components/shell/PageHeader';
@@ -21,7 +20,7 @@ import { pinnedByRow } from './layout';
 
 export function OverviewPage() {
   const data = useMoneoData();
-  const { period, setPeriod } = useUI();
+  const { period, setPeriod, name } = useUI();
   const now = today();
   const pay = data && currentPaycheque(data.paycheques, now);
   const info = pay && periodInfo(pay, now);
@@ -30,7 +29,7 @@ export function OverviewPage() {
   return (
     <>
       <PageHeader
-        title={`${greeting()}, ${PROFILE.name}`}
+        title={name.trim() ? `${greeting()}, ${name.trim()}` : greeting()}
         subtitle={
           <>
             {longDay(now)}
