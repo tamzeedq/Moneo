@@ -12,6 +12,7 @@ import { btn } from '@/components/ui/styles';
 import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { useWizard } from '@/stores/wizard';
 import { toast } from '@/stores/toast';
+import { reportError } from '@/lib/report';
 import { WizardFooter } from './WizardFooter';
 import { toneColor } from '@/components/ui/tone';
 
@@ -39,7 +40,7 @@ export function ReviewStep({ data, draft }: { data: MoneoData; draft: PaychequeD
       toast(`Paycheque saved · ${dayShortDate(draft.payDate)} · ${money(draft.net)}`);
       navigate('/');
     } catch (e) {
-      console.error(e);
+      reportError(e, { action: 'savePaycheque' });
       toast('Couldn’t save the paycheque. Try again.');
       setSaving(false);
     }

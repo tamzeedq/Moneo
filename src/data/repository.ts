@@ -2,6 +2,7 @@ import type { Account, BudgetLine, Category, Cents, ChartDef, ISODate, MoneoData
 import type { PaychequeRecords } from '@/domain/wizard';
 import { SEED_VERSION } from './seed';
 import { workspace } from './workspace';
+import { reportError } from '@/lib/report';
 import { db, type MoneoDB } from './db';
 
 /**
@@ -154,6 +155,6 @@ export async function ensureSeedVersion(r: Repository = repo) {
     await r.reset();
     localStorage.setItem(SEED_KEY, String(SEED_VERSION));
   } catch (e) {
-    console.warn('Could not check seed version', e);
+    reportError(e, { action: 'ensureSeedVersion' });
   }
 }
