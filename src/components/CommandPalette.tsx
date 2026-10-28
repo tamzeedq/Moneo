@@ -15,9 +15,6 @@ interface Item {
   run: () => void;
 }
 
-export const isMac = () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
-export const paletteShortcut = () => (isMac() ? '⌘K' : 'Ctrl K');
-
 const GROUP_ORDER = ['Actions', 'Pages', 'Accounts', 'Charts', 'Paycheques', 'Transactions'];
 
 function buildItems(data: MoneoData | undefined, go: (to: string) => void, openTx: () => void, toggleTheme: () => void): Item[] {
@@ -52,13 +49,7 @@ function matches(label: string, q: string) {
 
 /** ⌘K / Ctrl K: jump to pages, records and actions. */
 export function CommandPalette() {
-  const data = useMoneoData();
-  const navigate = useNavigate();
   const { palette: open, open: openDialog, close } = useDialogs();
-  const toggleTheme = useUI((s) => s.toggleTheme);
-  const [q, setQ] = useState('');
-  const [active, setActive] = useState(0);
-  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -72,12 +63,29 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', onKey);
   }, [openDialog, close]);
 
-  useEffect(() => {
-    if (open) {
-      setQ('');
-      setActive(0);
-    }
-  }, [open]);
+  return (
+    <Dialog.Root open={open} onOpenChange={(o) => (o ? openDialog('palette') : close('palette'))}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
+        {/* Content unmounts when closed, so the query and selection start fresh each time. */}
+        <PaletteContent />
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function PaletteContent() {
+  const data = useMoneoData();
+  const navigate = useNavigate();
+  const { open: openDialog, close } = useDialogs();
+  const toggleTheme = useUI((s) => s.toggleTheme);
+  const [q, setQuery] = useState('');
+  const [active, setActive] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
+  const setQ = (v: string) => {
+    setQuery(v);
+    setActive(0);
+  };
 
   const all = useMemo(
     () =>
@@ -118,7 +126,6 @@ export function CommandPalette() {
     return r.sort((a, b) => GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group)).slice(0, 40);
   }, [all, q, data, close, navigate]);
 
-  useEffect(() => setActive(0), [q]);
   useEffect(() => {
     listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [active]);
@@ -137,9 +144,6 @@ export function CommandPalette() {
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={(o) => (o ? openDialog('palette') : close('palette'))}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
         <Dialog.Content
           className="fixed top-[14vh] left-1/2 z-50 flex w-[560px] max-w-[calc(100vw-32px)] -translate-x-1/2 flex-col overflow-hidden rounded-[18px] border border-line bg-panel text-ink shadow-xl"
           onKeyDown={onKeyDown}
@@ -183,7 +187,5 @@ export function CommandPalette() {
             <span>esc to close</span>
           </div>
         </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
   );
 }

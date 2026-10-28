@@ -12,7 +12,7 @@ import { btn, chip, field } from '@/components/ui/styles';
 import { useUI, type Theme } from '@/stores/ui';
 import { useWizard } from '@/stores/wizard';
 import { toast } from '@/stores/toast';
-import { paletteShortcut } from '@/components/CommandPalette';
+import { paletteShortcut } from '@/lib/platform';
 
 export function SettingsPage() {
   const data = useMoneoData();

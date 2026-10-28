@@ -5,6 +5,7 @@ import { shortDate, today } from '@/domain/dates';
 import { repo } from '@/data/repository';
 import { btn, field } from '@/components/ui/styles';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 /** Saves a split as a reusable template ("Start the split from" in the wizard, chips on Paycheques). */
 export function SaveTemplateDialog({
@@ -13,9 +14,8 @@ export function SaveTemplateDialog({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const save = async () => {
-    const id = 't-' + Date.now().toString(36);
     await repo.saveTemplate({
-      id,
+      id: newId(),
       name: name.trim(),
       description: `Saved ${shortDate(today())} from ${from}`,
       amounts: { ...amounts },

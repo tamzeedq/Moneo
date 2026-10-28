@@ -10,7 +10,10 @@ import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { MiniChart } from '@/components/charts/MiniChart';
 import { btn } from '@/components/ui/styles';
-import { chartSub, newChartId, QuestionList, toneVar } from './shared';
+import { QuestionList } from './shared';
+import { chartSub } from './chartSub';
+import { toneColor } from '@/components/ui/tone';
+import { newId } from '@/lib/id';
 
 function xRange(r: ChartResult): [string, string] {
   if (r.type === 'allocation') return ['$0', money(r.total, { decimals: 0 })];
@@ -32,7 +35,7 @@ export function NewChart() {
   const [x0, x1] = xRange(result);
 
   const create = async (status: ChartDef['status'], def: Omit<ChartDef, 'id' | 'status' | 'editedAt'> = q.def) => {
-    const id = newChartId();
+    const id = newId();
     await repo.saveChart({ ...def, id, status, editedAt: now });
     navigate(`/charts/${id}`);
   };
@@ -61,7 +64,7 @@ export function NewChart() {
             </div>
             <div className="text-right">
               <div className="text-[26px] font-medium tracking-[-0.04em]">{h.big}</div>
-              <div className="text-[12px]" style={{ color: toneVar[h.tone] }}>
+              <div className="text-[12px]" style={{ color: toneColor[h.tone] }}>
                 {h.delta}
               </div>
             </div>

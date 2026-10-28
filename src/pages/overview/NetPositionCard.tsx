@@ -1,29 +1,15 @@
 import { useMemo, useState } from 'react';
-import { eachMonthOfInterval, format } from 'date-fns';
 import type { ISODate, MoneoData } from '@/domain/types';
 import { money } from '@/domain/money';
-import { parse } from '@/domain/dates';
 import {
   currentPaycheque, netDelta, netHistory, netPosition, spentBetween, trailingSavingsRate, type NetRange,
 } from '@/domain/selectors';
 import { AreaLineChart } from '@/components/charts/AreaLineChart';
+import { axisLabels } from '@/components/charts/axisLabels';
 import { HeroMoney } from '@/components/ui/Money';
 import { Segmented } from '@/components/ui/Segmented';
 
 const RANGES: NetRange[] = ['1M', '6M', '1Y', 'All'];
-
-/** Up to 6 x-axis labels: month names for long ranges, dates for short ones. */
-export function axisLabels(points: { date: string }[]): string[] {
-  if (points.length < 2) return [];
-  const start = parse(points[0].date), end = parse(points[points.length - 1].date);
-  const months = eachMonthOfInterval({ start, end }).slice(1);
-  if (months.length >= 3) {
-    const step = Math.ceil(months.length / 6);
-    return months.filter((_, i) => (months.length - 1 - i) % step === 0).map((m) => format(m, 'MMM'));
-  }
-  const n = 5;
-  return Array.from({ length: n }, (_, i) => format(parse(points[Math.round((i / (n - 1)) * (points.length - 1))].date), 'MMM d'));
-}
 
 export function NetPositionCard({ data, today }: { data: MoneoData; today: ISODate }) {
   const [range, setRange] = useState<NetRange>('6M');

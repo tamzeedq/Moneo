@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useDialogs } from '@/stores/ui';
-import { paletteShortcut } from '@/components/CommandPalette';
+import { paletteShortcut } from '@/lib/platform';
 
 const NAV = [
   { to: '/', label: 'Overview', end: true },

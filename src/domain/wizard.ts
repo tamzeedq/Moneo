@@ -7,6 +7,7 @@ import type {
   Account, Allocation, BudgetLine, Category, Cents, Goal, ISODate, MoneoData, Paycheque, Repeats, SplitTemplate,
 } from './types';
 import { addDaysISO, parse, shortDate, toISO } from './dates';
+import { newId } from '@/lib/id';
 import { money, sum } from './money';
 import {
   allocationsFor, budgetPool, currentPaycheque, leftToAllocate, leftToBudget, pastPaycheques, spendByCategory,
@@ -263,7 +264,7 @@ export interface PaychequeRecords {
   budgetLines: BudgetLine[];
 }
 
-export function draftToRecords(d: PaychequeDraft, id = `p-${d.payDate}-${Date.now().toString(36)}`): PaychequeRecords {
+export function draftToRecords(d: PaychequeDraft, id = newId()): PaychequeRecords {
   const period = payPeriod(d.payDate, d.repeats);
   return {
     paycheque: {

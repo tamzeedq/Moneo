@@ -19,8 +19,9 @@ import { Sparkline } from '@/components/charts/Sparkline';
 import { AreaLineChart } from '@/components/charts/AreaLineChart';
 import { btn, field } from '@/components/ui/styles';
 import { ModalForm } from '@/components/ui/ModalForm';
-import { axisLabels } from '@/pages/overview/NetPositionCard';
+import { axisLabels } from '@/components/charts/axisLabels';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 const RANGES: BalanceRange[] = ['1M', '6M', '1Y', 'All'];
 const KINDS: { value: AccountKind; label: string; purpose: string }[] = [
@@ -198,10 +199,9 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
   const [text, setText] = useState('');
   const balance = parseDollars(text) ?? 0;
   const save = async () => {
-    const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36).slice(-4);
     const used = new Set(data.accounts.map((a) => a.color));
     const a: Account = {
-      id,
+      id: newId(),
       name: name.trim(),
       kind,
       purpose: KINDS.find((k) => k.value === kind)!.purpose,

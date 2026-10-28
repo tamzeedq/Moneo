@@ -17,7 +17,7 @@ import { Stepper } from '@/components/ui/Stepper';
 import { Swatch } from '@/components/ui/Avatar';
 import { HalfRing } from '@/components/charts/HalfRing';
 import { btn } from '@/components/ui/styles';
-import { toneColor } from '@/pages/wizard/WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 import { toast } from '@/stores/toast';
 
 export function BudgetPage() {

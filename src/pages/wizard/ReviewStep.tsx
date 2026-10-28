@@ -14,7 +14,8 @@ import { btn } from '@/components/ui/styles';
 import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { useWizard } from '@/stores/wizard';
 import { toast } from '@/stores/toast';
-import { toneColor, WizardFooter } from './WizardFooter';
+import { WizardFooter } from './WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 
 export function ReviewStep({ data, draft }: { data: MoneoData; draft: PaychequeDraft }) {
   const { update, reset } = useWizard();

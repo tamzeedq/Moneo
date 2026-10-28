@@ -3,6 +3,7 @@ import type { Account, Cents } from '@/domain/types';
 import { money, sum } from '@/domain/money';
 import { moveDivider } from '@/domain/wizard';
 import { TickBar } from '@/components/charts/TickBar';
+import { onColor } from '@/components/ui/tone';
 
 interface Props {
   accounts: Account[];
@@ -81,9 +82,6 @@ export function AllocationBar({ accounts, allocations, net, onChange, height = 3
     </div>
   );
 }
-
-/** Text colour that reads on each account colour (ink on light tints, white on terracotta, invInk on inv). */
-export const onColor = (color: string) => (color === 'var(--inv)' ? 'var(--inv-ink)' : color === 'var(--acc)' ? '#ffffff' : '#17181a');
 
 function Blocks({ accounts, amounts, total, height }: { accounts: Account[]; amounts: Cents[]; total: Cents; height: number }) {
   const left = Math.max(total - sum(amounts), 0);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import type { Cents, MoneoData, Repeats } from '@/domain/types';
@@ -170,11 +170,9 @@ const toRaw = (c: Cents) => (c ? (c / 100).toFixed(2).replace(/\.00$/, '') : '')
 
 /** 40px money input with faint cents. A transparent input on top captures typing; the caret sits at the end. */
 function NetInput({ id, value, onChange, hint }: { id: string; value: Cents; onChange: (c: Cents) => void; hint: string }) {
-  const [raw, setRaw] = useState(() => toRaw(value));
-  const [focused, setFocused] = useState(false);
-  useEffect(() => {
-    if (!focused) setRaw(toRaw(value));
-  }, [value, focused]);
+  // What's being typed while focused; otherwise the input mirrors the stored value.
+  const [raw, setRaw] = useState<string | null>(null);
+  const focused = raw !== null;
   const { whole, cents } = moneyParts(value);
   return (
     <div className="relative flex items-baseline justify-between gap-3 rounded-[12px] border-[1.5px] border-acc bg-bg px-4 py-3">
@@ -190,9 +188,9 @@ function NetInput({ id, value, onChange, hint }: { id: string; value: Cents; onC
         inputMode="decimal"
         autoComplete="off"
         className="absolute inset-0 cursor-text opacity-0"
-        value={raw}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        value={raw ?? toRaw(value)}
+        onFocus={() => setRaw(toRaw(value))}
+        onBlur={() => setRaw(null)}
         onChange={(e) => {
           const v = e.target.value.replace(/[$,\s]/g, '');
           if (!/^\d{0,7}(\.\d{0,2})?$/.test(v)) return;

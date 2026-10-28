@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   DndContext, KeyboardSensor, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent,
@@ -22,8 +22,8 @@ import { cardLabel, OVERVIEW_CARDS, OVERVIEW_ROWS, PIN_SPAN, pinnedByRow, rowOfC
 const SPAN_CLASS: Record<number, string> = { 3: 'col-span-3', 4: 'col-span-4', 6: 'col-span-6', 9: 'col-span-9', 12: 'col-span-12' };
 const ROW_CLASS: Record<number, string> = { 1: 'row-span-1', 2: 'row-span-2' };
 
-/** Animates map items from their previous position (FLIP) whenever `deps` change. */
-function useFlip(container: React.RefObject<HTMLElement | null>, deps: unknown[]) {
+/** Animates map items from their previous position (FLIP) whenever `layoutKey` changes. */
+function useFlip(container: React.RefObject<HTMLElement | null>, layoutKey: string) {
   const prev = useRef(new Map<string, DOMRect>());
   useLayoutEffect(() => {
     const els = container.current?.querySelectorAll<HTMLElement>('[data-flip]') ?? [];
@@ -41,7 +41,7 @@ function useFlip(container: React.RefObject<HTMLElement | null>, deps: unknown[]
       }
     });
     prev.current = next;
-  }, deps);
+  }, [container, layoutKey]);
 }
 
 export function PinChart() {
@@ -49,21 +49,17 @@ export function PinChart() {
   const data = useMoneoData();
   const navigate = useNavigate();
   const def = data?.charts.find((c) => c.id === id);
-  const [size, setSize] = useState<PinSize>('M');
-  const [after, setAfter] = useState('pace');
-  const [alsoOn, setAlsoOn] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  // Choices made on this page, over the chart's current pin (or the defaults for a new pin).
+  const [choice, setChoice] = useState<{ size?: PinSize; after?: string; alsoOn?: boolean }>({});
+  const size = choice.size ?? def?.pin?.size ?? 'M';
+  const after = choice.after ?? (def?.status === 'pinned' && def.pin?.after ? def.pin.after : 'pace');
+  const alsoOn = choice.alsoOn ?? !!def?.pin?.alsoOn?.includes('paycheques');
+  const setSize = (v: PinSize) => setChoice((c) => ({ ...c, size: v }));
+  const setAfter = (v: string) => setChoice((c) => ({ ...c, after: v }));
+  const setAlsoOn = (v: boolean) => setChoice((c) => ({ ...c, alsoOn: v }));
   const mapRef = useRef<HTMLDivElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor));
-  useFlip(mapRef, [size, after, loaded]);
-
-  useEffect(() => {
-    if (!def || loaded) return;
-    setSize(def.pin?.size ?? 'M');
-    setAfter(def.status === 'pinned' && def.pin?.after ? def.pin.after : 'pace');
-    setAlsoOn(!!def.pin?.alsoOn?.includes('paycheques'));
-    setLoaded(true);
-  }, [def, loaded]);
+  useFlip(mapRef, `${size}|${after}|${!!def}`);
 
   if (!data) return null;
   if (!def) {

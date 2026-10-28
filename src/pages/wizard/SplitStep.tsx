@@ -12,8 +12,10 @@ import { Stepper } from '@/components/ui/Stepper';
 import { Swatch } from '@/components/ui/Avatar';
 import { btn, chip } from '@/components/ui/styles';
 import { useWizard } from '@/stores/wizard';
-import { AllocationBar, onColor } from './AllocationBar';
-import { toneColor, WizardFooter } from './WizardFooter';
+import { AllocationBar } from './AllocationBar';
+import { onColor } from '@/components/ui/tone';
+import { WizardFooter } from './WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 
 const cols = 'grid grid-cols-[minmax(0,1fr)_110px_132px_110px] gap-3.5';
 

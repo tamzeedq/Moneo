@@ -77,7 +77,7 @@ export function parseAmount(value: string | undefined): Cents | null {
     v = v.slice(1, -1);
   }
   if (/\b(dr|debit)\b/i.test(v)) sign = -1;
-  v = v.replace(/\b(cr|dr|credit|debit|cad)\b/gi, '').replace(/[$\s ]/g, '');
+  v = v.replace(/\b(cr|dr|credit|debit|cad)\b/gi, '').replace(/[$\s\u00a0]/g, '');
   if (/^[-−]/.test(v)) {
     sign *= -1;
     v = v.slice(1);

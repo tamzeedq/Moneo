@@ -19,8 +19,9 @@ import { Select } from '@/components/ui/Select';
 import { Switch } from '@/components/ui/Switch';
 import { Swatch } from '@/components/ui/Avatar';
 import { btn, chip } from '@/components/ui/styles';
-import { downloadFile } from '@/components/download';
+import { downloadFile } from '@/lib/download';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 const NONE = '__none';
 const SAMPLE = `Date,Description,Amount
@@ -105,9 +106,7 @@ function ImportCard({ data }: { data: MoneoData }) {
   const cats = [...data.categories].sort((a, b) => a.order - b.order);
 
   const doImport = async () => {
-    let n = 0;
-    const stamp = Date.now().toString(36);
-    const txs = rowsToTransactions(included, accountId, () => `i-${stamp}-${++n}`);
+    const txs = rowsToTransactions(included, accountId, newId);
     await repo.addTransactions(txs, { adjustBalances: adjust, date: today() });
     toast(`Imported ${txs.length} transaction${txs.length === 1 ? '' : 's'} into ${account.name}`);
     setLoaded(null);

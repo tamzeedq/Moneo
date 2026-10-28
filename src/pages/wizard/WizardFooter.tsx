@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Tone } from '@/domain/wizard';
-
-export const toneColor: Record<Tone, string> = { pos: 'var(--pos)', acc: 'var(--acc)', ink: 'var(--ink)', mute: 'var(--mute)' };
+import { toneColor } from '@/components/ui/tone';
 
 /** Sticky footer card: back/cancel on the left, status line and primary action(s) on the right. */
 export function WizardFooter({ left, status, tone = 'mute', children }: { left: ReactNode; status?: ReactNode; tone?: Tone; children: ReactNode }) {

@@ -1,11 +1,5 @@
 import type { ChartDef } from '@/domain/types';
-import { KIND_LABELS, QUESTIONS, rangeLabel } from '@/domain/charts';
-
-export const toneVar = { pos: 'var(--pos)', acc: 'var(--acc)', mute: 'var(--mute)' } as const;
-
-export function chartSub(def: ChartDef) {
-  return `${KIND_LABELS[def.kind]} · ${rangeLabel(def)}`;
-}
+import { QUESTIONS } from '@/domain/charts';
 
 export function StatusBadge({ status }: { status: ChartDef['status'] }) {
   const pinned = status === 'pinned';
@@ -18,8 +12,6 @@ export function StatusBadge({ status }: { status: ChartDef['status'] }) {
     </span>
   );
 }
-
-export const newChartId = () => 'c-' + Date.now().toString(36);
 
 export function QuestionList({ selected, onPick }: { selected?: string; onPick: (id: string) => void }) {
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMoneoData } from '@/data/hooks';
 import { repo } from '@/data/repository';
 import { today } from '@/domain/dates';
@@ -12,13 +12,20 @@ import { Swatch } from '@/components/ui/Avatar';
 import { field } from '@/components/ui/styles';
 import { useDialogs } from '@/stores/ui';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 const NONE = 'none';
 
 /** "+ Transaction": add one transaction by hand. Opened from the Overview quick action or ⌘K. */
 export function TransactionDialog() {
+  const open = useDialogs((s) => s.transaction);
+  // Mounted only while open, so every visit starts with a blank form.
+  return open ? <TransactionForm /> : null;
+}
+
+function TransactionForm() {
   const data = useMoneoData();
-  const { transaction: open, close } = useDialogs();
+  const close = useDialogs((s) => s.close);
   const [direction, setDirection] = useState<'out' | 'in'>('out');
   const [amountText, setAmountText] = useState('');
   const [merchant, setMerchant] = useState('');
@@ -27,17 +34,6 @@ export function TransactionDialog() {
   const [accountId, setAccountId] = useState('spending');
   const [date, setDate] = useState(today());
   const [adjust, setAdjust] = useState(true);
-
-  useEffect(() => {
-    if (!open) return;
-    setDirection('out');
-    setAmountText('');
-    setMerchant('');
-    setCategoryId(NONE);
-    setCategoryTouched(false);
-    setDate(today());
-    setAdjust(true);
-  }, [open]);
 
   const history = useMemo(() => merchantHistory(data?.transactions ?? []), [data?.transactions]);
   const merchants = useMemo(() => [...new Set((data?.transactions ?? []).filter((t) => t.amount < 0).map((t) => t.merchant))].sort(), [data?.transactions]);
@@ -60,7 +56,7 @@ export function TransactionDialog() {
   const save = async () => {
     if (!valid) return;
     await repo.addTransactions(
-      [{ id: 'm-' + Date.now().toString(36), date, merchant: merchant.trim(), amount: signed!, accountId: account.id, categoryId: direction === 'out' && categoryId !== NONE ? categoryId : undefined }],
+      [{ id: newId(), date, merchant: merchant.trim(), amount: signed!, accountId: account.id, categoryId: direction === 'out' && categoryId !== NONE ? categoryId : undefined }],
       { adjustBalances: adjust, date: today() },
     );
     toast(`Added ${merchant.trim()} · ${money(signed!, { signed: true })}`);
@@ -69,7 +65,7 @@ export function TransactionDialog() {
 
   return (
     <ModalForm
-      open={open}
+      open
       onOpenChange={(o) => !o && close('transaction')}
       title="Add transaction"
       description="For spending the bank feed doesn’t cover yet. Import a CSV for many at once."

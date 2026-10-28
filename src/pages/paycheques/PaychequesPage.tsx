@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMoneoData } from '@/data/hooks';
 import { repo } from '@/data/repository';
@@ -17,7 +17,7 @@ import { Swatch } from '@/components/ui/Avatar';
 import { btn, chip } from '@/components/ui/styles';
 import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { AllocationBar } from '@/pages/wizard/AllocationBar';
-import { toneColor } from '@/pages/wizard/WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 import { PinnedRow } from '@/pages/overview/PinnedCharts';
 import { toast } from '@/stores/toast';
 
@@ -66,20 +66,13 @@ export function PaychequesPage() {
 
 function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; paycheque: Paycheque; today: string; onSelect: (p: Paycheque) => void }) {
   const saved = allocationMap(data, p.id);
-  const [amounts, setAmounts] = useState<Record<string, Cents>>(saved);
-  // Pick up external changes (e.g. after saving) while there are no local edits.
-  const savedKey = JSON.stringify(saved);
-  const [base, setBase] = useState(savedKey);
-  useEffect(() => {
-    if (savedKey !== base) {
-      setBase(savedKey);
-      setAmounts(JSON.parse(savedKey));
-    }
-  }, [savedKey, base]);
+  // Unsaved edits over the stored split; null means "showing what's saved".
+  const [edits, setAmounts] = useState<Record<string, Cents> | null>(null);
+  const amounts = edits ?? saved;
 
   const accounts = splitAccounts(data.accounts);
   const status = splitStatus(p.net, amounts);
-  const dirty = !sameAllocations(amounts, saved);
+  const dirty = edits !== null && !sameAllocations(edits, saved);
   const upcoming = p.payDate > today;
   const templates = [...data.templates].sort((a, b) => a.order - b.order).filter((t) => t.id !== 'blank');
   const goals = new Map(data.goals.filter((g) => g.accountId && g.kind !== 'room').map((g) => [g.accountId!, g]));
@@ -89,6 +82,7 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
 
   const save = async () => {
     await repo.setAllocations(p.id, amounts);
+    setAmounts(null);
     toast(`Allocation saved · ${shortDate(p.payDate)} paycheque`);
   };
 
@@ -181,7 +175,7 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
           })}
           <div className="flex items-center justify-end gap-2.5 pt-3.5">
             {dirty && <span className="mr-auto text-[12px]" style={{ color: toneColor[status.tone] }}>{status.label}</span>}
-            <button type="button" className={btn.secondary} disabled={!dirty} onClick={() => setAmounts(saved)}>
+            <button type="button" className={btn.secondary} disabled={!dirty} onClick={() => setAmounts(null)}>
               Cancel
             </button>
             <button type="button" className={btn.accent} disabled={!dirty || !status.canContinue} onClick={save}>

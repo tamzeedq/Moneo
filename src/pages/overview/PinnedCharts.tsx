@@ -6,7 +6,7 @@ import { repo } from '@/data/repository';
 import { Card } from '@/components/ui/Card';
 import { MiniChart } from '@/components/charts/MiniChart';
 import { toast } from '@/stores/toast';
-import { toneVar } from '@/pages/charts/shared';
+import { toneColor } from '@/components/ui/tone';
 import { PIN_SPAN } from './layout';
 
 const HEIGHT = { S: 56, M: 140, L: 220 } as const;
@@ -59,7 +59,7 @@ function PinnedChartCard({ def, data, today }: { def: ChartDef; data: MoneoData;
       </div>
       <div className="flex items-baseline gap-2">
         <span className={`${size === 'S' ? 'text-[20px]' : 'text-[22px]'} font-medium tracking-[-0.035em]`}>{h.big}</span>
-        <span className="truncate text-[12px]" style={{ color: toneVar[h.tone] }}>
+        <span className="truncate text-[12px]" style={{ color: toneColor[h.tone] }}>
           {h.delta}
         </span>
       </div>

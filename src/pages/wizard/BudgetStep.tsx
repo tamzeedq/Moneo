@@ -13,7 +13,8 @@ import { Stepper } from '@/components/ui/Stepper';
 import { HalfRing } from '@/components/charts/HalfRing';
 import { btn, chip } from '@/components/ui/styles';
 import { useWizard } from '@/stores/wizard';
-import { toneColor, WizardFooter } from './WizardFooter';
+import { WizardFooter } from './WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 
 const cols = 'grid grid-cols-[minmax(0,150px)_minmax(0,1fr)_96px_132px] gap-3.5';
 /** Plan bars share one scale so rows compare; $720 unless a plan or last spend is bigger. */

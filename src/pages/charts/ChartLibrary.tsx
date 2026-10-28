@@ -7,7 +7,9 @@ import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { MiniChart } from '@/components/charts/MiniChart';
 import { btn, chip } from '@/components/ui/styles';
-import { chartSub, QuestionList, StatusBadge, toneVar } from './shared';
+import { QuestionList, StatusBadge } from './shared';
+import { chartSub } from './chartSub';
+import { toneColor } from '@/components/ui/tone';
 
 type Filter = 'all' | 'pinned' | 'drafts' | Topic;
 const TOPICS: Topic[] = ['Spending', 'Saving', 'Accounts'];
@@ -92,7 +94,7 @@ export function ChartLibrary() {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-[22px] font-medium tracking-[-0.035em]">{h.big}</span>
-                    <span className="truncate text-[12px]" style={{ color: toneVar[h.tone] }}>
+                    <span className="truncate text-[12px]" style={{ color: toneColor[h.tone] }}>
                       {h.delta}
                     </span>
                   </div>

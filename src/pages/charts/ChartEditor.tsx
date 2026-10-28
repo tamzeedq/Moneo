@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 import { useMoneoData } from '@/data/hooks';
@@ -19,21 +19,22 @@ import { MiniChart } from '@/components/charts/MiniChart';
 import { SeriesPlot } from '@/components/charts/SeriesPlot';
 import { btn, chip, field } from '@/components/ui/styles';
 import { toast } from '@/stores/toast';
-import { downloadFile, slug } from '@/components/download';
-import { toneVar } from './shared';
+import { downloadFile, slug } from '@/lib/download';
+import { toneColor } from '@/components/ui/tone';
 
 const inputCls = `${field} py-[9px]! text-[13px]!`;
 
-/** Loads a chart into local state and writes every change straight back ("autosaved"). */
+/**
+ * The chart being edited, and an updater that writes every change straight back ("autosaved").
+ * Local edits win over the stored copy until the save round-trips, so typing never flickers.
+ */
 function useChartDraft(data: MoneoData | undefined, id: string | undefined) {
-  const [def, setDef] = useState<ChartDef | null>(null);
-  useEffect(() => {
-    if (data && id && def?.id !== id) setDef(data.charts.find((c) => c.id === id) ?? null);
-  }, [data, id, def?.id]);
+  const [local, setLocal] = useState<ChartDef | null>(null);
+  const def = local?.id === id ? local : (data?.charts.find((c) => c.id === id) ?? null);
   const update = (patch: Partial<ChartDef>) => {
     if (!def) return;
     const next = { ...def, ...patch, editedAt: today() };
-    setDef(next);
+    setLocal(next);
     void repo.saveChart(next);
   };
   return [def, update] as const;
@@ -253,7 +254,7 @@ export function ChartEditor() {
                 <div key={s.label} className={`px-3.5 ${i ? 'border-l border-line' : ''}`}>
                   <div className="text-[12px] text-mute">{s.label}</div>
                   <div className="mt-[3px] text-[20px] font-medium tracking-[-0.03em]">{s.value}</div>
-                  <div className="mt-px text-[11px]" style={{ color: toneVar[s.tone] }}>
+                  <div className="mt-px text-[11px]" style={{ color: toneColor[s.tone] }}>
                     {s.sub}
                   </div>
                 </div>
