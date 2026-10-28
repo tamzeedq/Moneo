@@ -1,6 +1,7 @@
 import { buildSeed, SEED_TODAY } from '@/data/seed';
 import {
   averagePlan,
+  expectedPaycheques,
   budgetStatus,
   createDraft,
   draftPool,
@@ -112,5 +113,22 @@ describe('records', () => {
     expect(firstInvalidStep(d)).toBeUndefined();
     expect(firstInvalidStep({ ...d, net: 0 })).toBe('details');
     expect(firstInvalidStep({ ...d, allocations: { chequing: 300000 } })).toBe('split');
+  });
+});
+
+describe('expected paycheques', () => {
+  it('nothing is due while the current period is running', () => {
+    expect(expectedPaycheques(data.paycheques, today)).toMatchObject({ due: [], next: '2025-10-10' });
+  });
+  it('lists every missed bi-weekly pay date, oldest first', () => {
+    expect(expectedPaycheques(data.paycheques, '2025-10-30')).toMatchObject({ due: ['2025-10-10', '2025-10-24'], next: '2025-11-07' });
+  });
+  it('a pay date of today counts as due', () => {
+    expect(expectedPaycheques(data.paycheques, '2025-10-10').due).toEqual(['2025-10-10']);
+  });
+  it('one-off paycheques and empty workspaces expect nothing', () => {
+    const once = data.paycheques.map((p) => ({ ...p, repeats: 'once' as const }));
+    expect(expectedPaycheques(once, '2026-01-01').due).toEqual([]);
+    expect(expectedPaycheques([], today)).toEqual({ due: [], basis: undefined });
   });
 });

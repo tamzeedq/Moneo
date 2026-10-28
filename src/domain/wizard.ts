@@ -171,6 +171,31 @@ const byCategoryOrder = (categories: Category[]) => {
 /** The most recent paycheque on record, including ones planned ahead of their pay date. */
 export const latestPaycheque = (paycheques: Paycheque[]) => [...paycheques].sort((a, b) => a.payDate.localeCompare(b.payDate)).at(-1);
 
+export interface ExpectedPaycheques {
+  /** Pay dates that have passed (up to and including today) with no paycheque recorded, oldest first. */
+  due: ISODate[];
+  /** The next pay date after today, per the latest paycheque's repeat rule. */
+  next?: ISODate;
+  /** The paycheque the schedule comes from. */
+  basis?: Paycheque;
+}
+
+/**
+ * Pay dates implied by the latest paycheque's repeat rule. Nothing is stored: expected paycheques
+ * stay derived so bank sync and paycheque detection can match real deposits to them later.
+ */
+export function expectedPaycheques(paycheques: Paycheque[], today: ISODate, maxDue = 26): ExpectedPaycheques {
+  const basis = latestPaycheque(paycheques);
+  if (!basis || basis.repeats === 'once') return { due: [], basis };
+  const due: ISODate[] = [];
+  let d = nextPayDate(basis.payDate, basis.repeats);
+  while (d <= today && due.length < maxDue) {
+    due.push(d);
+    d = nextPayDate(d, basis.repeats);
+  }
+  return { due, next: d, basis };
+}
+
 /** "Copy last plan": the latest paycheque's budget lines. */
 export function lastPlan(data: MoneoData): { categoryId: string; plan: Cents }[] {
   const last = latestPaycheque(data.paycheques);

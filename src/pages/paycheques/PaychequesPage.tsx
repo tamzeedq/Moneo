@@ -5,7 +5,7 @@ import { repo } from '@/data/repository';
 import type { Cents, MoneoData, Paycheque } from '@/domain/types';
 import { money } from '@/domain/money';
 import { dayShortDate, shortDate, today } from '@/domain/dates';
-import { splitAccounts, splitStatus, SPLIT_STEP, templateAllocations } from '@/domain/wizard';
+import { expectedPaycheques, splitAccounts, splitStatus, SPLIT_STEP, templateAllocations } from '@/domain/wizard';
 import { allocationMap, byPayDateDesc, paychequeHistory, sameAllocations } from '@/domain/views';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
@@ -28,6 +28,7 @@ export function PaychequesPage() {
   if (!data) return null;
 
   const list = byPayDateDesc(data.paycheques);
+  const due = expectedPaycheques(data.paycheques, now).due;
   const selected = list.find((p) => p.id === params.get('id')) ?? list[0];
   const select = (p: Paycheque) => setParams({ id: p.id }, { replace: true });
   const i = selected ? list.indexOf(selected) : -1;
@@ -52,6 +53,19 @@ export function PaychequesPage() {
           </>
         }
       />
+      {due.length > 0 && (
+        <Card className="flex items-center justify-between gap-4 py-3.5! text-[13px]">
+          <span>
+            <span className="font-medium">
+              {due.length === 1 ? `Your ${shortDate(due[0])} paycheque` : `${due.length} paycheques since ${shortDate(due[0])}`}
+            </span>{' '}
+            <span className="text-mute">{due.length === 1 ? 'is due and not added yet.' : 'are due and not added yet.'}</span>
+          </span>
+          <Link to="/paycheques/new/details" className={`${btn.accent} px-3.5! py-2!`}>
+            Add {shortDate(due[0])} →
+          </Link>
+        </Card>
+      )}
       {selected ? (
         <Allocate key={selected.id} data={data} paycheque={selected} today={now} onSelect={select} />
       ) : (

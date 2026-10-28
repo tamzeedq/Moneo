@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMoneoData } from '@/data/hooks';
-import { greeting, longDay, today } from '@/domain/dates';
+import { greeting, longDay, shortDate, today } from '@/domain/dates';
 import { currentPaycheque, periodInfo } from '@/domain/selectors';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
@@ -34,7 +34,8 @@ export function OverviewPage() {
         subtitle={
           <>
             {longDay(now)}
-            {info && ` · day ${info.elapsed} of ${info.length} this paycheque`}
+            {info &&
+              (now <= info.end ? ` · day ${info.elapsed} of ${info.length} this paycheque` : ` · last paycheque ${shortDate(info.start)}`)}
           </>
         }
         actions={
