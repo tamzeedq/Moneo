@@ -17,6 +17,7 @@ import { BudgetWatchCard } from './BudgetWatchCard';
 import { GoalsCard } from './GoalsCard';
 import { PinnedRow } from './PinnedCharts';
 import { pinnedByRow } from './layout';
+import { Welcome } from './Welcome';
 
 export function OverviewPage() {
   const data = useMoneoData();
@@ -47,7 +48,9 @@ export function OverviewPage() {
         }
       />
 
-      {!data ? null : (
+      {!data ? null : data.accounts.length === 0 ? (
+        <Welcome data={data} />
+      ) : (
         <>
           <NetPositionCard data={data} today={now} />
           <PinnedRow charts={pinned[0]} data={data} today={now} />

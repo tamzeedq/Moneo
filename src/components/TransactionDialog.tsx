@@ -31,7 +31,7 @@ function TransactionForm() {
   const [merchant, setMerchant] = useState('');
   const [categoryId, setCategoryId] = useState<string>(NONE);
   const [categoryTouched, setCategoryTouched] = useState(false);
-  const [accountId, setAccountId] = useState('spending');
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [date, setDate] = useState(today());
   const [adjust, setAdjust] = useState(true);
 
@@ -43,7 +43,23 @@ function TransactionForm() {
   if (!data) return null;
 
   const accounts = [...data.accounts].sort((a, b) => a.order - b.order);
-  const account = accounts.find((a) => a.id === accountId) ?? accounts[0];
+  if (!accounts.length) {
+    return (
+      <ModalForm
+        open
+        onOpenChange={(o) => !o && close('transaction')}
+        title="Add an account first"
+        description="Transactions belong to an account. Set up your accounts from the Overview, then come back."
+        submitLabel="OK"
+        canSubmit
+        onSubmit={() => close('transaction')}
+      >
+        <span />
+      </ModalForm>
+    );
+  }
+  // Default to the day-to-day account when there is one.
+  const account = accounts.find((a) => a.id === accountId) ?? accounts.find((a) => a.kind === 'spending') ?? accounts[0];
   const amount = parseAmount(amountText);
   const signed = amount === null ? null : (direction === 'out' ? -1 : 1) * Math.abs(amount);
   const valid = signed !== null && signed !== 0 && merchant.trim() !== '' && !!date && !!account;

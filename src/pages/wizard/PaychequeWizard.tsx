@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useMoneoData } from '@/data/hooks';
 import { dayShortDate, today } from '@/domain/dates';
-import { createDraft, firstInvalidStep, WIZARD_STEPS, type WizardStep } from '@/domain/wizard';
+import { createDraft, firstInvalidStep, splitAccounts, WIZARD_STEPS, type WizardStep } from '@/domain/wizard';
+import { Card } from '@/components/ui/Card';
+import { btn } from '@/components/ui/styles';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { useWizard } from '@/stores/wizard';
@@ -35,6 +37,19 @@ export function PaychequeWizard() {
   }, [data, draft, start]);
 
   if (!isStep(step)) return <Navigate to="/paycheques/new/details" replace />;
+  if (data && splitAccounts(data.accounts).length === 0) {
+    return (
+      <>
+        <PageHeader crumb="Paycheques / New" title="Add paycheque" actions={<ThemeToggle />} />
+        <Card className="flex items-center justify-between gap-4 text-[13px] text-mute">
+          A paycheque is split across your accounts, so add those first.
+          <Link to="/" className={btn.primary}>
+            Set up accounts
+          </Link>
+        </Card>
+      </>
+    );
+  }
   if (!data || !draft) return null;
 
   // Never land on a step past one that blocks (e.g. a reload on /review with an over-split draft).

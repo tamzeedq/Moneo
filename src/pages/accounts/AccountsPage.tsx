@@ -14,6 +14,7 @@ import { Field } from '@/components/ui/Field';
 import { HeroMoney } from '@/components/ui/Money';
 import { Segmented } from '@/components/ui/Segmented';
 import { Select } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
 import { Swatch } from '@/components/ui/Avatar';
 import { Sparkline } from '@/components/charts/Sparkline';
 import { AreaLineChart } from '@/components/charts/AreaLineChart';
@@ -224,7 +225,10 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
   const [name, setName] = useState('');
   const [kind, setKind] = useState<AccountKind>('emergency');
   const [text, setText] = useState('');
+  // Credit cards are never split targets; everything else defaults to joining the split.
+  const [inSplit, setInSplit] = useState(true);
   const balance = parseDollars(text) ?? 0;
+  const splittable = kind !== 'credit';
   const save = async () => {
     const used = new Set(data.accounts.map((a) => a.color));
     const a: Account = {
@@ -235,8 +239,9 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
       color: NEW_COLORS.find((c) => !used.has(c)) ?? '#a8a29a',
       balance: kind === 'credit' ? -Math.abs(balance) : balance,
       order: Math.max(...data.accounts.map((x) => x.order), 0) + 1,
+      splitOrder: splittable && inSplit ? Math.max(-1, ...data.accounts.map((x) => x.splitOrder ?? -1)) + 1 : undefined,
     };
-    await repo.addAccount(a, today());
+    await repo.addAccounts([a], today());
     toast(`${a.name} added`);
     setOpen(false);
     setName('');
@@ -253,7 +258,7 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
         </button>
       }
       title="Add account"
-      description="Tracked manually. Add it to a paycheque split from a template later."
+      description="Tracked manually: update its balance whenever you like."
       submitLabel="Add account"
       canSubmit={!!name.trim()}
       onSubmit={save}
@@ -286,6 +291,15 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
           onChange={(e) => setText(e.target.value)}
         />
       </Field>
+      {splittable && (
+        <div className="flex items-center justify-between gap-3 rounded-[12px] bg-panel2 p-3 text-[12px]">
+          <span>
+            Include in paycheque splits
+            <span className="block text-[11px] text-mute">It gets a stepper in the split step of each new paycheque.</span>
+          </span>
+          <Switch checked={inSplit} onChange={setInSplit} label="Include in paycheque splits" />
+        </div>
+      )}
     </ModalForm>
   );
 }

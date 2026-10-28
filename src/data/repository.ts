@@ -1,6 +1,7 @@
-import type { Account, BudgetLine, Cents, ChartDef, ISODate, MoneoData, SplitTemplate, Transaction } from '@/domain/types';
+import type { Account, BudgetLine, Category, Cents, ChartDef, ISODate, MoneoData, SplitTemplate, Transaction } from '@/domain/types';
 import type { PaychequeRecords } from '@/domain/wizard';
-import { buildSeed, SEED_VERSION } from './seed';
+import { SEED_VERSION } from './seed';
+import { workspace } from './workspace';
 import { db, type MoneoDB } from './db';
 
 /**
@@ -9,7 +10,8 @@ import { db, type MoneoDB } from './db';
  */
 export interface Repository {
   loadAll(): Promise<MoneoData>;
-  resetToSeed(): Promise<void>;
+  /** Restores the workspace's starting data (sample data in the demo, an empty workspace otherwise). */
+  reset(): Promise<void>;
   /** Creates a paycheque with its allocations and budget lines, atomically. */
   savePaycheque(r: PaychequeRecords): Promise<void>;
   saveTemplate(t: SplitTemplate): Promise<void>;
@@ -21,7 +23,9 @@ export interface Repository {
   setBudget(paychequeId: string, lines: Omit<BudgetLine, 'paychequeId'>[]): Promise<void>;
   /** Sets an account's balance and records it as today's snapshot (and today's net position). */
   updateBalance(accountId: string, balance: Cents, date: ISODate): Promise<void>;
-  addAccount(a: Account, date: ISODate): Promise<void>;
+  /** Adds accounts with an opening balance snapshot on `date`. */
+  addAccounts(accounts: Account[], date: ISODate): Promise<void>;
+  saveCategories(categories: Category[]): Promise<void>;
   /** Adds transactions; optionally moves each account's balance by their total (recorded as `date`). */
   addTransactions(txs: Transaction[], opts: { adjustBalances: boolean; date: ISODate }): Promise<void>;
   /** Replaces everything with the given data (backup restore). */
@@ -89,10 +93,10 @@ export function dexieRepository(database: MoneoDB = db): Repository {
         await database.netSnapshots.put({ date, value: all.reduce((t, a) => t + a.balance, 0) });
       });
     },
-    async addAccount(a, date) {
+    async addAccounts(accounts, date) {
       await database.transaction('rw', database.accounts, database.balanceSnapshots, database.netSnapshots, async () => {
-        await database.accounts.add(a);
-        await database.balanceSnapshots.put({ accountId: a.id, date, balance: a.balance });
+        await database.accounts.bulkAdd(accounts);
+        await database.balanceSnapshots.bulkPut(accounts.map((a) => ({ accountId: a.id, date, balance: a.balance })));
         const all = await database.accounts.toArray();
         await database.netSnapshots.put({ date, value: all.reduce((t, x) => t + x.balance, 0) });
       });
@@ -129,8 +133,11 @@ export function dexieRepository(database: MoneoDB = db): Repository {
         },
       );
     },
-    async resetToSeed() {
-      await this.replaceAll(buildSeed());
+    async saveCategories(categories) {
+      await database.categories.bulkPut(categories);
+    },
+    async reset() {
+      await this.replaceAll(workspace.initial());
     },
   };
 }
@@ -139,11 +146,12 @@ export const repo = dexieRepository();
 
 const SEED_KEY = 'moneo-seed-version';
 
-/** POC helper: reseed the local database when the bundled seed has changed. */
+/** Demo workspace only: reseed when the bundled sample data has changed. Real data is never touched. */
 export async function ensureSeedVersion(r: Repository = repo) {
+  if (workspace.id !== 'demo') return;
   try {
     if (localStorage.getItem(SEED_KEY) === String(SEED_VERSION)) return;
-    await r.resetToSeed();
+    await r.reset();
     localStorage.setItem(SEED_KEY, String(SEED_VERSION));
   } catch (e) {
     console.warn('Could not check seed version', e);

@@ -6,7 +6,10 @@ import '@fontsource/geist/600.css';
 import './styles/index.css';
 import { App } from './App';
 import { ensureSeedVersion } from './data/repository';
+import { workspace } from './data/workspace';
+import { setClock } from './domain/dates';
 
+setClock(workspace.clock);
 void ensureSeedVersion();
 
 createRoot(document.getElementById('root')!).render(

@@ -13,6 +13,9 @@ import { useUI, type Theme } from '@/stores/ui';
 import { useWizard } from '@/stores/wizard';
 import { toast } from '@/stores/toast';
 import { paletteShortcut } from '@/lib/platform';
+import { switchWorkspace, workspace } from '@/data/workspace';
+
+const demo = workspace.id === 'demo';
 
 export function SettingsPage() {
   const data = useMoneoData();
@@ -66,18 +69,33 @@ export function SettingsPage() {
             </div>
           )}
           <p className="m-0 text-[12px] text-mute">
-            This POC runs on sample data with “today” pinned to {longDay(today())}, so the screens match the designs.{' '}
+            {demo
+              ? `You’re in the demo: sample data with “today” pinned to ${longDay(today())}. Your own workspace is kept separately.`
+              : 'Your workspace, stored on this device until accounts and sync arrive. Back it up regularly.'}{' '}
             <Link to="/import" className="text-acc">
               Back up or import →
             </Link>
           </p>
           <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
             <div className="text-[13px]">
-              <div className="font-medium">Reset demo data</div>
-              <div className="text-[11px] text-mute">Restores the sample accounts, paycheques and charts.</div>
+              <div className="font-medium">{demo ? 'Back to my data' : 'Explore the demo'}</div>
+              <div className="text-[11px] text-mute">
+                {demo ? 'Leave the sample data.' : 'A year of sample data. Your data stays untouched.'}
+              </div>
+            </div>
+            <button type="button" className={btn.secondary} onClick={() => switchWorkspace(demo ? 'mine' : 'demo')}>
+              {demo ? 'Switch' : 'Open demo'}
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
+            <div className="text-[13px]">
+              <div className="font-medium">{demo ? 'Reset demo data' : 'Erase my data'}</div>
+              <div className="text-[11px] text-mute">
+                {demo ? 'Restores the sample accounts, paycheques and charts.' : 'Deletes every account, paycheque, transaction and chart.'}
+              </div>
             </div>
             <button type="button" className={`${btn.secondary} text-acc!`} onClick={() => setConfirm(true)}>
-              Reset…
+              {demo ? 'Reset…' : 'Erase…'}
             </button>
           </div>
         </Card>
@@ -100,15 +118,19 @@ export function SettingsPage() {
       <ModalForm
         open={confirm}
         onOpenChange={setConfirm}
-        title="Reset demo data?"
-        description="Everything you’ve added or changed (paycheques, transactions, charts, balances) is replaced with the sample data. It can’t be undone."
-        submitLabel="Reset data"
+        title={demo ? 'Reset demo data?' : 'Erase all your data?'}
+        description={
+          demo
+            ? 'Everything you’ve changed in the demo is replaced with the sample data.'
+            : 'Every account, paycheque, transaction, budget and chart in this workspace is deleted. Download a backup first if you might want it back. This can’t be undone.'
+        }
+        submitLabel={demo ? 'Reset data' : 'Erase everything'}
         canSubmit
         onSubmit={async () => {
-          await repo.resetToSeed();
+          await repo.reset();
           resetWizard();
           setConfirm(false);
-          toast('Demo data restored');
+          toast(demo ? 'Demo data restored' : 'Workspace erased');
           navigate('/');
         }}
       >

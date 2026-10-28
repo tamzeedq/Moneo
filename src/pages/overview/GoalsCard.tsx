@@ -8,6 +8,7 @@ export function GoalsCard({ data }: { data: MoneoData }) {
   return (
     <Card className="flex flex-col gap-3.5">
       <CardHeader title="Goals" meta="+ Add goal" />
+      {goals.length === 0 && <div className="text-[13px] text-mute">No goals yet.</div>}
       {goals.map((g) => (
         <div key={g.id} className="flex flex-col gap-1.5">
           <div className="flex justify-between gap-2 text-[13px]">

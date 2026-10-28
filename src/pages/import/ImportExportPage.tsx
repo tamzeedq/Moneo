@@ -70,7 +70,8 @@ function ImportCard({ data }: { data: MoneoData }) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [mapping, setMapping] = useState<ColumnMapping | null>(null);
   const [order, setOrder] = useState<DateOrder>('ymd');
-  const [accountId, setAccountId] = useState('spending');
+  const [chosenAccount, setAccountId] = useState<string | null>(null);
+  const accountId = chosenAccount ?? (data.accounts.find((a) => a.kind === 'spending') ?? data.accounts[0])?.id ?? '';
   const [overrides, setOverrides] = useState<Record<number, { include?: boolean; categoryId?: string }>>({});
   const [adjust, setAdjust] = useState(true);
   const [dragging, setDragging] = useState(false);
@@ -127,6 +128,15 @@ function ImportCard({ data }: { data: MoneoData }) {
     setLoaded(null);
     navigate(`/accounts?id=${accountId}`);
   };
+
+  if (!data.accounts.length) {
+    return (
+      <Card className="flex flex-col gap-2 text-[13px] text-mute">
+        <CardHeader title="Import a bank CSV" />
+        Imported transactions go into one of your accounts. Set up your accounts from the Overview first.
+      </Card>
+    );
+  }
 
   if (!loaded || !mapping) {
     return (
