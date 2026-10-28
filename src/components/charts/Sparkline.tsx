@@ -13,7 +13,9 @@ interface Props {
 export function Sparkline({ values, color, width = 64, height = 24, pad = 3, strokeWidth = 1.5 }: Props) {
   const d = useMemo(() => {
     if (values.length < 2) return '';
-    const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
+    const min = Math.min(...values),
+      max = Math.max(...values),
+      span = max - min || 1;
     return (
       'M' +
       values

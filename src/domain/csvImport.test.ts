@@ -1,8 +1,17 @@
 import Papa from 'papaparse';
 import { buildSeed } from '@/data/seed';
 import {
-  buildRows, detectColumns, detectDateOrder, displayMerchant, merchantKey, parseAmount, parseDate, rowsToTransactions,
-  suggestCategory, merchantHistory, transactionsCsv,
+  buildRows,
+  detectColumns,
+  detectDateOrder,
+  displayMerchant,
+  merchantKey,
+  parseAmount,
+  parseDate,
+  rowsToTransactions,
+  suggestCategory,
+  merchantHistory,
+  transactionsCsv,
 } from './csvImport';
 
 const data = buildSeed();
@@ -10,11 +19,20 @@ const data = buildSeed();
 describe('columns', () => {
   it('detects a signed amount column', () => {
     expect(detectColumns(['Transaction Date', 'Description', 'Amount', 'Balance'])).toMatchObject({
-      date: 'Transaction Date', merchant: 'Description', amount: 'Amount', debit: null, credit: null,
+      date: 'Transaction Date',
+      merchant: 'Description',
+      amount: 'Amount',
+      debit: null,
+      credit: null,
     });
   });
   it('detects debit/credit columns', () => {
-    expect(detectColumns(['Date', 'Payee', 'Withdrawals', 'Deposits'])).toMatchObject({ amount: null, debit: 'Withdrawals', credit: 'Deposits', merchant: 'Payee' });
+    expect(detectColumns(['Date', 'Payee', 'Withdrawals', 'Deposits'])).toMatchObject({
+      amount: null,
+      debit: 'Withdrawals',
+      credit: 'Deposits',
+      merchant: 'Payee',
+    });
   });
 });
 

@@ -3,7 +3,17 @@ import type { Tone } from '@/domain/wizard';
 import { toneColor } from '@/components/ui/tone';
 
 /** Sticky footer card: back/cancel on the left, status line and primary action(s) on the right. */
-export function WizardFooter({ left, status, tone = 'mute', children }: { left: ReactNode; status?: ReactNode; tone?: Tone; children: ReactNode }) {
+export function WizardFooter({
+  left,
+  status,
+  tone = 'mute',
+  children,
+}: {
+  left: ReactNode;
+  status?: ReactNode;
+  tone?: Tone;
+  children: ReactNode;
+}) {
   return (
     <footer className="sticky bottom-[22px] z-10 mt-auto flex items-center justify-between gap-4 rounded-[16px] border border-line bg-panel px-[18px] py-3.5">
       {left}

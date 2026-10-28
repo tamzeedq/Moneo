@@ -40,10 +40,7 @@ export function OverviewPage() {
           <>
             <Segmented label="Period" value={period} options={PERIODS} onChange={setPeriod} />
             <ThemeToggle />
-            <Link
-              to="/paycheques/new/details"
-              className="rounded-[11px] bg-inv px-3.5 py-[9px] text-[12px] font-medium text-inv-ink"
-            >
+            <Link to="/paycheques/new/details" className="rounded-[11px] bg-inv px-3.5 py-[9px] text-[12px] font-medium text-inv-ink">
               + Add paycheque
             </Link>
           </>

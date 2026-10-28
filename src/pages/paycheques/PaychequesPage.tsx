@@ -57,14 +57,26 @@ export function PaychequesPage() {
       ) : (
         <Card className="flex items-center justify-between text-[13px] text-mute">
           No paycheques yet.
-          <Link to="/paycheques/new/details" className={btn.primary}>Add your first paycheque</Link>
+          <Link to="/paycheques/new/details" className={btn.primary}>
+            Add your first paycheque
+          </Link>
         </Card>
       )}
     </>
   );
 }
 
-function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; paycheque: Paycheque; today: string; onSelect: (p: Paycheque) => void }) {
+function Allocate({
+  data,
+  paycheque: p,
+  today,
+  onSelect,
+}: {
+  data: MoneoData;
+  paycheque: Paycheque;
+  today: string;
+  onSelect: (p: Paycheque) => void;
+}) {
   const saved = allocationMap(data, p.id);
   // Unsaved edits over the stored split; null means "showing what's saved".
   const [edits, setAmounts] = useState<Record<string, Cents> | null>(null);
@@ -158,7 +170,10 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
                 ? `${goalPct(a.balance)}% → ${goalPct(a.balance + amt)}% of ${money(g.target, { decimals: 0 })} goal`
                 : `${goalPct(a.balance)}% of ${money(g.target, { decimals: 0 })} goal`;
             return (
-              <div key={a.id} className="grid grid-cols-[minmax(0,1fr)_100px_16px_110px_132px] items-center gap-3 border-b border-line px-1 py-2.5 text-[13px]">
+              <div
+                key={a.id}
+                className="grid grid-cols-[minmax(0,1fr)_100px_16px_110px_132px] items-center gap-3 border-b border-line px-1 py-2.5 text-[13px]"
+              >
                 <div className="flex min-w-0 items-center gap-2.5">
                   <Swatch color={a.color} size={10} />
                   <div className="min-w-0">
@@ -169,12 +184,21 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
                 <span className="text-right text-mute">{upcoming ? money(a.balance) : ''}</span>
                 <span className="text-faint">{upcoming ? '→' : ''}</span>
                 <span className="text-right font-medium">{upcoming ? money(a.balance + amt) : `${pct(amt)}%`}</span>
-                <Stepper value={amt} step={SPLIT_STEP} label={`${a.shortName ?? a.name} amount`} onChange={(v) => setAmounts({ ...amounts, [a.id]: v })} />
+                <Stepper
+                  value={amt}
+                  step={SPLIT_STEP}
+                  label={`${a.shortName ?? a.name} amount`}
+                  onChange={(v) => setAmounts({ ...amounts, [a.id]: v })}
+                />
               </div>
             );
           })}
           <div className="flex items-center justify-end gap-2.5 pt-3.5">
-            {dirty && <span className="mr-auto text-[12px]" style={{ color: toneColor[status.tone] }}>{status.label}</span>}
+            {dirty && (
+              <span className="mr-auto text-[12px]" style={{ color: toneColor[status.tone] }}>
+                {status.label}
+              </span>
+            )}
             <button type="button" className={btn.secondary} disabled={!dirty} onClick={() => setAmounts(null)}>
               Cancel
             </button>

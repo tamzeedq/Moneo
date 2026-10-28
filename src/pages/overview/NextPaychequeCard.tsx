@@ -19,7 +19,9 @@ export function NextPaychequeCard({ data, today }: { data: MoneoData; today: ISO
         <div className="text-[22px] font-medium tracking-[-0.03em]">Add your first paycheque</div>
         <div className="flex items-center justify-between text-[12px] text-inv-mute">
           <span>Split it across your accounts</span>
-          <Link to="/paycheques/new/details" className={accButton}>Start →</Link>
+          <Link to="/paycheques/new/details" className={accButton}>
+            Start →
+          </Link>
         </div>
       </div>
     );
@@ -46,7 +48,9 @@ export function NextPaychequeCard({ data, today }: { data: MoneoData; today: ISO
         {planned ? (
           <span className="rounded-[9px] px-2.5 py-1.5 text-[12px] font-medium text-inv-ink">Planned ✓</span>
         ) : (
-          <Link to="/paycheques/new/details" className={accButton}>Plan →</Link>
+          <Link to="/paycheques/new/details" className={accButton}>
+            Plan →
+          </Link>
         )}
       </div>
     </div>
@@ -59,10 +63,18 @@ export function QuickActions() {
   const openDialog = useDialogs((s) => s.open);
   return (
     <div className="grid grid-cols-2 gap-2 text-[12px]">
-      <button type="button" className={action} onClick={() => openDialog('transaction')}>+ Transaction</button>
-      <Link to="/accounts?update=chequing" className={action}>Update balance</Link>
-      <Link to="/import" className={action}>Import CSV</Link>
-      <Link to="/charts/new" className={action}>New chart</Link>
+      <button type="button" className={action} onClick={() => openDialog('transaction')}>
+        + Transaction
+      </button>
+      <Link to="/accounts?update=chequing" className={action}>
+        Update balance
+      </Link>
+      <Link to="/import" className={action}>
+        Import CSV
+      </Link>
+      <Link to="/charts/new" className={action}>
+        New chart
+      </Link>
     </div>
   );
 }

@@ -1,7 +1,20 @@
 import { buildSeed, SEED_TODAY } from '@/data/seed';
 import {
-  averagePlan, budgetStatus, createDraft, draftPool, draftToRecords, firstInvalidStep, goalImpact, lastSpent,
-  moveDivider, nextPayDate, payPeriod, sameAmountCount, savingsOf, splitStatus, stepAmount,
+  averagePlan,
+  budgetStatus,
+  createDraft,
+  draftPool,
+  draftToRecords,
+  firstInvalidStep,
+  goalImpact,
+  lastSpent,
+  moveDivider,
+  nextPayDate,
+  payPeriod,
+  sameAmountCount,
+  savingsOf,
+  splitStatus,
+  stepAmount,
 } from './wizard';
 
 const data = buildSeed();
@@ -23,7 +36,13 @@ describe('pay dates', () => {
 describe('draft prefill', () => {
   const d = createDraft(data, today);
   it('prefills from the Sep 26 paycheque', () => {
-    expect(d).toMatchObject({ basedOn: 'p-2025-09-26', net: 264000, payDate: '2025-10-10', source: 'Northwind Ltd.', templateId: 'standard' });
+    expect(d).toMatchObject({
+      basedOn: 'p-2025-09-26',
+      net: 264000,
+      payDate: '2025-10-10',
+      source: 'Northwind Ltd.',
+      templateId: 'standard',
+    });
     expect(d.allocations).toEqual({ chequing: 110000, tfsa: 58000, spending: 52000, emergency: 12000, rrsp: 32000 });
     expect(d.gross! - d.deductions.reduce((a, x) => a + x.amount, 0)).toBe(d.net);
   });

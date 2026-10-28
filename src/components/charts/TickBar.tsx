@@ -15,7 +15,11 @@ interface Props {
 
 /** Bar of N ticks, each 1/N of the total, coloured by segment in order. */
 export function TickBar({ segments, total, count = 60, height = 26 }: Props) {
-  const counts = distributeTicks(segments.map((s) => s.amount), total, count);
+  const counts = distributeTicks(
+    segments.map((s) => s.amount),
+    total,
+    count,
+  );
   const ticks: string[] = [];
   segments.forEach((s, i) => {
     for (let k = 0; k < counts[i]; k++) ticks.push(s.color);

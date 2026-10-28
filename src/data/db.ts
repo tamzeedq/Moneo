@@ -1,7 +1,18 @@
 import Dexie, { type Table } from 'dexie';
 import type {
-  Account, Allocation, BalanceSnapshot, Bill, BudgetLine, Category, ChartDef,
-  Goal, MoneoData, NetSnapshot, Paycheque, SplitTemplate, Transaction,
+  Account,
+  Allocation,
+  BalanceSnapshot,
+  Bill,
+  BudgetLine,
+  Category,
+  ChartDef,
+  Goal,
+  MoneoData,
+  NetSnapshot,
+  Paycheque,
+  SplitTemplate,
+  Transaction,
 } from '@/domain/types';
 import { buildSeed } from './seed';
 

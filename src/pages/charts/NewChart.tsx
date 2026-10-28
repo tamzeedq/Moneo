@@ -48,7 +48,11 @@ export function NewChart() {
         actions={
           <>
             <ThemeToggle />
-            <button type="button" className={btn.secondary} onClick={() => create('draft', { ...QUESTIONS[0].def, title: 'Untitled chart', question: undefined })}>
+            <button
+              type="button"
+              className={btn.secondary}
+              onClick={() => create('draft', { ...QUESTIONS[0].def, title: 'Untitled chart', question: undefined })}
+            >
               Blank chart
             </button>
           </>

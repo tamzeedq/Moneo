@@ -15,8 +15,7 @@ export const toISO = (d: Date): ISODate => format(d, 'yyyy-MM-dd');
 export const parse = (d: ISODate): Date => parseISO(d);
 
 export const addDaysISO = (d: ISODate, n: number): ISODate => toISO(addDays(parse(d), n));
-export const daysBetween = (from: ISODate, to: ISODate): number =>
-  differenceInCalendarDays(parse(to), parse(from));
+export const daysBetween = (from: ISODate, to: ISODate): number => differenceInCalendarDays(parse(to), parse(from));
 
 /** "Oct 3" */
 export const shortDate = (d: ISODate) => format(parse(d), 'MMM d');

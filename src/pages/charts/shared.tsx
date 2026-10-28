@@ -27,7 +27,11 @@ export function QuestionList({ selected, onPick }: { selected?: string; onPick: 
             onClick={() => onPick(q.id)}
             className={`flex items-center gap-3 rounded-[14px] border px-3.5 py-[13px] text-left ${on ? 'border-acc bg-panel' : 'border-line hover:border-faint'}`}
           >
-            <span className={`grid size-8 flex-none place-items-center rounded-[9px] text-[12px] font-semibold ${on ? 'bg-acc text-white' : 'bg-panel2 text-mute'}`}>{i + 1}</span>
+            <span
+              className={`grid size-8 flex-none place-items-center rounded-[9px] text-[12px] font-semibold ${on ? 'bg-acc text-white' : 'bg-panel2 text-mute'}`}
+            >
+              {i + 1}
+            </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[14px] font-medium">{q.question}</span>
               <span className="mt-0.5 block text-[12px] text-mute">{q.sub}</span>
@@ -39,4 +43,3 @@ export function QuestionList({ selected, onPick }: { selected?: string; onPick: 
     </div>
   );
 }
-

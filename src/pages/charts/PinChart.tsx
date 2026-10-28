@@ -1,7 +1,14 @@
 import { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  DndContext, KeyboardSensor, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import { useMoneoData } from '@/data/hooks';
 import { repo } from '@/data/repository';
@@ -35,7 +42,13 @@ function useFlip(container: React.RefObject<HTMLElement | null>, layoutKey: stri
       const p = prev.current.get(key);
       if (p && (p.left !== r.left || p.top !== r.top || p.width !== r.width)) {
         el.animate(
-          [{ transformOrigin: 'top left', transform: `translate(${p.left - r.left}px, ${p.top - r.top}px) scale(${p.width / r.width}, ${p.height / r.height})` }, { transformOrigin: 'top left', transform: 'none' }],
+          [
+            {
+              transformOrigin: 'top left',
+              transform: `translate(${p.left - r.left}px, ${p.top - r.top}px) scale(${p.width / r.width}, ${p.height / r.height})`,
+            },
+            { transformOrigin: 'top left', transform: 'none' },
+          ],
           { duration: 250, easing: 'ease' },
         );
       }
@@ -66,7 +79,9 @@ export function PinChart() {
     return (
       <>
         <PageHeader crumb="Chart Studio" title="Chart not found" actions={<ThemeToggle />} />
-        <Link to="/charts" className="text-[13px] text-acc">Back to Chart Studio →</Link>
+        <Link to="/charts" className="text-[13px] text-acc">
+          Back to Chart Studio →
+        </Link>
       </>
     );
   }
@@ -82,11 +97,21 @@ export function PinChart() {
     const over = e.over?.id ? String(e.over.id) : null;
     if (!over) return;
     // Dropping on another pinned chart lands in the same slot as it.
-    setAfter(over.startsWith('pin:') ? others.find((c) => c.id === over.slice(4))?.pin?.after ?? after : over);
+    setAfter(over.startsWith('pin:') ? (others.find((c) => c.id === over.slice(4))?.pin?.after ?? after) : over);
   };
 
   const pin = async () => {
-    await repo.saveChart({ ...def, status: 'pinned', pin: { size, after, alsoOn: alsoOn ? ['paycheques'] : [], pinnedAt: def.status === 'pinned' && def.pin?.pinnedAt ? def.pin.pinnedAt : new Date().toISOString() }, editedAt: today() });
+    await repo.saveChart({
+      ...def,
+      status: 'pinned',
+      pin: {
+        size,
+        after,
+        alsoOn: alsoOn ? ['paycheques'] : [],
+        pinnedAt: def.status === 'pinned' && def.pin?.pinnedAt ? def.pin.pinnedAt : new Date().toISOString(),
+      },
+      editedAt: today(),
+    });
     toast(`Pinned “${def.title}” after ${cardLabel(after)}`);
     navigate('/');
   };
@@ -154,7 +179,10 @@ export function PinChart() {
                           <span
                             key={k}
                             className="rounded-[2px]"
-                            style={{ background: k % 4 < o.cols && Math.floor(k / 4) < o.rows ? (on ? 'var(--acc)' : 'var(--faint)') : 'var(--track)' }}
+                            style={{
+                              background:
+                                k % 4 < o.cols && Math.floor(k / 4) < o.rows ? (on ? 'var(--acc)' : 'var(--faint)') : 'var(--track)',
+                            }}
                           />
                         ))}
                       </span>
@@ -204,7 +232,11 @@ export function PinChart() {
       </div>
 
       <WizardFooter
-        left={<Link to={`/charts/${def.id}`} className={btn.secondary}>← Back to editor</Link>}
+        left={
+          <Link to={`/charts/${def.id}`} className={btn.secondary}>
+            ← Back to editor
+          </Link>
+        }
         status={`Lands after ${cardLabel(after)} · ${sizeMeta.label.toLowerCase()} card`}
       >
         <button type="button" className={btn.accent} onClick={pin}>
@@ -215,7 +247,21 @@ export function PinChart() {
   );
 }
 
-function Skeleton({ id, label, span, rows, pinned, newLine }: { id: string; label: string; span: number; rows: number; pinned?: boolean; newLine?: boolean }) {
+function Skeleton({
+  id,
+  label,
+  span,
+  rows,
+  pinned,
+  newLine,
+}: {
+  id: string;
+  label: string;
+  span: number;
+  rows: number;
+  pinned?: boolean;
+  newLine?: boolean;
+}) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
     <div
@@ -234,10 +280,33 @@ function Skeleton({ id, label, span, rows, pinned, newLine }: { id: string; labe
   );
 }
 
-function NewCard({ title, size, span, rows, color, values, newLine }: { title: string; size: string; span: number; rows: number; color: string; values: number[]; newLine?: boolean }) {
+function NewCard({
+  title,
+  size,
+  span,
+  rows,
+  color,
+  values,
+  newLine,
+}: {
+  title: string;
+  size: string;
+  span: number;
+  rows: number;
+  color: string;
+  values: number[];
+  newLine?: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: 'new' });
-  const min = Math.min(...values), max = Math.max(...values), s = max - min || 1;
-  const d = values.length > 1 ? values.map((v, i) => `${i ? 'L' : 'M'}${((i / (values.length - 1)) * 300).toFixed(1)} ${(90 - ((v - min) / s) * 80).toFixed(1)}`).join(' ') : '';
+  const min = Math.min(...values),
+    max = Math.max(...values),
+    s = max - min || 1;
+  const d =
+    values.length > 1
+      ? values
+          .map((v, i) => `${i ? 'L' : 'M'}${((i / (values.length - 1)) * 300).toFixed(1)} ${(90 - ((v - min) / s) * 80).toFixed(1)}`)
+          .join(' ')
+      : '';
   return (
     <div
       ref={setNodeRef}
@@ -246,7 +315,10 @@ function NewCard({ title, size, span, rows, color, values, newLine }: { title: s
       {...listeners}
       aria-label={`${title}, ${size} card. Drag onto a card to place it after that card.`}
       className={`${SPAN_CLASS[span]} ${ROW_CLASS[rows]} ${newLine ? 'col-start-1' : ''} relative z-10 flex min-w-0 cursor-grab touch-none flex-col gap-1.5 overflow-hidden rounded-[10px] border-[1.5px] border-dashed border-acc bg-panel px-[11px] py-[9px] active:cursor-grabbing`}
-      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined, boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,.15)' : undefined }}
+      style={{
+        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+        boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,.15)' : undefined,
+      }}
     >
       <div className="flex justify-between gap-2 text-[11px] font-medium text-acc">
         <span className="truncate">{title}</span>

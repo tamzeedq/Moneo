@@ -33,10 +33,7 @@ export function LatestSplitCard({ data, today }: { data: MoneoData; today: ISODa
           )
         }
       />
-      <TickBar
-        total={pay.net}
-        segments={rows.filter((r) => r.accountId !== null).map((r) => ({ amount: r.amount, color: r.color }))}
-      />
+      <TickBar total={pay.net} segments={rows.filter((r) => r.accountId !== null).map((r) => ({ amount: r.amount, color: r.color }))} />
       <div className="flex flex-col rounded-[12px] border border-line px-3 py-0.5">
         {rows.map((r) => (
           <div

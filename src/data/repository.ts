@@ -29,8 +29,18 @@ export interface Repository {
 }
 
 export const TABLES: (keyof MoneoData)[] = [
-  'accounts', 'paycheques', 'allocations', 'categories', 'budgetLines', 'transactions',
-  'goals', 'templates', 'bills', 'balanceSnapshots', 'netSnapshots', 'charts',
+  'accounts',
+  'paycheques',
+  'allocations',
+  'categories',
+  'budgetLines',
+  'transactions',
+  'goals',
+  'templates',
+  'bills',
+  'balanceSnapshots',
+  'netSnapshots',
+  'charts',
 ];
 
 export function dexieRepository(database: MoneoDB = db): Repository {
@@ -59,7 +69,9 @@ export function dexieRepository(database: MoneoDB = db): Repository {
       await database.transaction('rw', database.allocations, async () => {
         await database.allocations.where('paychequeId').equals(paychequeId).delete();
         await database.allocations.bulkAdd(
-          Object.entries(amounts).filter(([, amount]) => amount > 0).map(([accountId, amount]) => ({ paychequeId, accountId, amount })),
+          Object.entries(amounts)
+            .filter(([, amount]) => amount > 0)
+            .map(([accountId, amount]) => ({ paychequeId, accountId, amount })),
         );
       });
     },
@@ -86,28 +98,36 @@ export function dexieRepository(database: MoneoDB = db): Repository {
       });
     },
     async addTransactions(txs, { adjustBalances, date }) {
-      await database.transaction('rw', [database.transactions, database.accounts, database.balanceSnapshots, database.netSnapshots], async () => {
-        await database.transactions.bulkAdd(txs);
-        if (!adjustBalances) return;
-        const byAccount = new Map<string, Cents>();
-        for (const t of txs) byAccount.set(t.accountId, (byAccount.get(t.accountId) ?? 0) + t.amount);
-        for (const [accountId, delta] of byAccount) {
-          const a = await database.accounts.get(accountId);
-          if (!a) continue;
-          await database.accounts.update(accountId, { balance: a.balance + delta });
-          await database.balanceSnapshots.put({ accountId, date, balance: a.balance + delta });
-        }
-        const all = await database.accounts.toArray();
-        await database.netSnapshots.put({ date, value: all.reduce((t, x) => t + x.balance, 0) });
-      });
+      await database.transaction(
+        'rw',
+        [database.transactions, database.accounts, database.balanceSnapshots, database.netSnapshots],
+        async () => {
+          await database.transactions.bulkAdd(txs);
+          if (!adjustBalances) return;
+          const byAccount = new Map<string, Cents>();
+          for (const t of txs) byAccount.set(t.accountId, (byAccount.get(t.accountId) ?? 0) + t.amount);
+          for (const [accountId, delta] of byAccount) {
+            const a = await database.accounts.get(accountId);
+            if (!a) continue;
+            await database.accounts.update(accountId, { balance: a.balance + delta });
+            await database.balanceSnapshots.put({ accountId, date, balance: a.balance + delta });
+          }
+          const all = await database.accounts.toArray();
+          await database.netSnapshots.put({ date, value: all.reduce((t, x) => t + x.balance, 0) });
+        },
+      );
     },
     async replaceAll(data) {
-      await database.transaction('rw', TABLES.map((t) => database.table(t)), async () => {
-        for (const t of TABLES) {
-          await database.table(t).clear();
-          await database.table(t).bulkAdd((data[t] ?? []) as unknown[]);
-        }
-      });
+      await database.transaction(
+        'rw',
+        TABLES.map((t) => database.table(t)),
+        async () => {
+          for (const t of TABLES) {
+            await database.table(t).clear();
+            await database.table(t).bulkAdd((data[t] ?? []) as unknown[]);
+          }
+        },
+      );
     },
     async resetToSeed() {
       await this.replaceAll(buildSeed());

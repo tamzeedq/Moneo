@@ -63,8 +63,7 @@ export function periodInfo(p: Paycheque, today: ISODate): PeriodInfo {
 
 // ─── Allocation maths ────────────────────────────────────────────────────────
 
-export const allocationsFor = (allocations: Allocation[], paychequeId: string) =>
-  allocations.filter((a) => a.paychequeId === paychequeId);
+export const allocationsFor = (allocations: Allocation[], paychequeId: string) => allocations.filter((a) => a.paychequeId === paychequeId);
 
 /** Net minus everything allocated. Exactly 0 when every dollar has a job; negative when over. */
 export function leftToAllocate(net: Cents, amounts: readonly Cents[]): Cents {
@@ -138,7 +137,10 @@ export function splitRows(p: Paycheque, allocations: Allocation[], accounts: Acc
       share: 0,
     }))
     .filter((r) => r.amount > 0);
-  const left = leftToAllocate(p.net, rows.map((r) => r.amount));
+  const left = leftToAllocate(
+    p.net,
+    rows.map((r) => r.amount),
+  );
   if (left > 0) rows.push({ accountId: null, name: 'Unallocated', color: 'var(--faint)', amount: left, share: 0 });
   return rows.map((r) => ({ ...r, share: r.amount / p.net }));
 }
@@ -218,15 +220,8 @@ export interface BudgetWatchRow {
 }
 
 /** Budget lines for a paycheque with spend to date, most-used first. */
-export function budgetWatch(
-  lines: BudgetLine[],
-  categories: Category[],
-  txs: Transaction[],
-  paycheque: Paycheque,
-): BudgetWatchRow[] {
-  const spend = new Map(
-    spendByCategory(txs, categories, paycheque.periodStart, paycheque.periodEnd).map((c) => [c.category.id, c.spent]),
-  );
+export function budgetWatch(lines: BudgetLine[], categories: Category[], txs: Transaction[], paycheque: Paycheque): BudgetWatchRow[] {
+  const spend = new Map(spendByCategory(txs, categories, paycheque.periodStart, paycheque.periodEnd).map((c) => [c.category.id, c.spent]));
   const cats = new Map(categories.map((c) => [c.id, c]));
   return lines
     .filter((l) => l.paychequeId === paycheque.id && cats.has(l.categoryId))

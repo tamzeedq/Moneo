@@ -5,7 +5,13 @@ import type { Cents, MoneoData, Repeats } from '@/domain/types';
 import { money, moneyParts, sum } from '@/domain/money';
 import { parse, shortDate, today } from '@/domain/dates';
 import {
-  payPeriod, periodLabel, sameAmountCount, splitAccounts, templateAllocations, validateDraft, type PaychequeDraft,
+  payPeriod,
+  periodLabel,
+  sameAmountCount,
+  splitAccounts,
+  templateAllocations,
+  validateDraft,
+  type PaychequeDraft,
 } from '@/domain/wizard';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Field } from '@/components/ui/Field';
@@ -96,7 +102,9 @@ export function DetailsStep({ data, draft }: { data: MoneoData; draft: Paycheque
                 />
               </Field>
               <Field label="Pay period">
-                <div className="rounded-[10px] border border-line bg-bg px-3 py-2.5 text-[14px]">{periodLabel(period.start, period.end)}</div>
+                <div className="rounded-[10px] border border-line bg-bg px-3 py-2.5 text-[14px]">
+                  {periodLabel(period.start, period.end)}
+                </div>
               </Field>
               <Field label="Repeats" className="col-span-2 max-md:col-span-1">
                 <div role="radiogroup" aria-label="Repeats" className="flex flex-wrap gap-1.5 text-[13px] whitespace-nowrap">
@@ -223,7 +231,17 @@ function DateField({ id, value, onChange }: { id: string; value: string; onChang
 
 const DEDUCTION_COLORS = ['var(--acc)', '#d8b67a', '#8fae8f', '#7f95ab', '#a88aa6', '#c99a8e'];
 
-function AmountInput({ value, onChange, label, negative }: { value: Cents | null; onChange: (c: Cents | null) => void; label: string; negative?: boolean }) {
+function AmountInput({
+  value,
+  onChange,
+  label,
+  negative,
+}: {
+  value: Cents | null;
+  onChange: (c: Cents | null) => void;
+  label: string;
+  negative?: boolean;
+}) {
   const [text, setText] = useState<string | null>(null);
   return (
     <input
@@ -271,9 +289,7 @@ function GrossToNet({ draft }: { draft: PaychequeDraft }) {
         <Row color="var(--inv)" label="Net deposit" bold>
           <span className="px-1">{net === null ? '—' : money(net)}</span>
         </Row>
-        {mismatch && (
-          <div className="pt-1 text-[11px] text-acc">Doesn’t match the net deposit of {money(draft.net)}</div>
-        )}
+        {mismatch && <div className="pt-1 text-[11px] text-acc">Doesn’t match the net deposit of {money(draft.net)}</div>}
       </div>
       {gross ? (
         <div className="flex flex-col gap-2.5">
@@ -334,7 +350,9 @@ function Templates({ data, draft }: { data: MoneoData; draft: PaychequeDraft }) 
               onClick={() => update({ templateId: t.id, allocations: templateAllocations(t, data.accounts) })}
               className={`flex items-start gap-2.5 rounded-[12px] border px-3 py-[11px] text-left ${on ? 'border-acc bg-panel2' : 'border-line hover:border-faint'}`}
             >
-              <span className={`mt-0.5 grid size-3.5 flex-none place-items-center rounded-full border-[1.5px] ${on ? 'border-acc' : 'border-faint'}`}>
+              <span
+                className={`mt-0.5 grid size-3.5 flex-none place-items-center rounded-full border-[1.5px] ${on ? 'border-acc' : 'border-faint'}`}
+              >
                 <span className={`size-1.5 rounded-full ${on ? 'bg-acc' : ''}`} />
               </span>
               <span className="min-w-0 flex-1">
@@ -361,7 +379,10 @@ function RecentPaycheques({ data, draft }: { data: MoneoData; draft: PaychequeDr
     .filter((p) => p.payDate < draft.payDate)
     .sort((a, b) => a.payDate.localeCompare(b.payDate))
     .slice(-6);
-  const bars = [...past.map((p) => ({ date: p.payDate, net: p.net, current: false })), { date: draft.payDate, net: draft.net, current: true }];
+  const bars = [
+    ...past.map((p) => ({ date: p.payDate, net: p.net, current: false })),
+    { date: draft.payDate, net: draft.net, current: true },
+  ];
   const max = Math.max(...bars.map((b) => b.net), 1);
   const avg = sum(bars.map((b) => b.net)) / bars.length;
   const noted = [...past].reverse().find((p) => p.note);

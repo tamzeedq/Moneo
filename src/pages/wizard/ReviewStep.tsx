@@ -3,9 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { MoneoData } from '@/domain/types';
 import { money, sum } from '@/domain/money';
 import { dayShortDate, shortDate } from '@/domain/dates';
-import {
-  draftPool, draftToRecords, payPeriod, savingsOf, splitAccounts, splitStatus, type PaychequeDraft,
-} from '@/domain/wizard';
+import { draftPool, draftToRecords, payPeriod, savingsOf, splitAccounts, splitStatus, type PaychequeDraft } from '@/domain/wizard';
 import { repo } from '@/data/repository';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Swatch } from '@/components/ui/Avatar';
@@ -50,7 +48,12 @@ export function ReviewStep({ data, draft }: { data: MoneoData; draft: PaychequeD
   return (
     <>
       <Card className="grid grid-cols-4 px-[22px]! max-md:grid-cols-2 max-md:gap-y-4">
-        <Summary label="Paycheque in" value={money(draft.net)} sub={`${draft.source} · ${shortDate(draft.payDate)}`} className="pr-[18px]" />
+        <Summary
+          label="Paycheque in"
+          value={money(draft.net)}
+          sub={`${draft.source} · ${shortDate(draft.payDate)}`}
+          className="pr-[18px]"
+        />
         <Summary
           label="Moved to savings"
           value={money(saved)}
@@ -78,7 +81,9 @@ export function ReviewStep({ data, draft }: { data: MoneoData; draft: PaychequeD
       <div className="grid grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)] items-start gap-[14px] max-lg:grid-cols-1">
         <Card className="flex flex-col">
           <CardHeader title="Transfers to make" meta={`from ${deposit?.name} · ${shortDate(draft.payDate)}`} className="pb-2.5" />
-          {transfers.length === 0 && <div className="border-t border-line py-2.5 text-[12px] text-mute">Nothing to move. It all stays in {deposit?.name}.</div>}
+          {transfers.length === 0 && (
+            <div className="border-t border-line py-2.5 text-[12px] text-mute">Nothing to move. It all stays in {deposit?.name}.</div>
+          )}
           {transfers.map((a) => {
             const done = !!draft.transfersDone[a.id];
             const name = a.shortName ?? a.name;
@@ -151,7 +156,13 @@ export function ReviewStep({ data, draft }: { data: MoneoData; draft: PaychequeD
         </Card>
       </div>
 
-      <WizardFooter left={<Link to="/paycheques/new/budget" className={btn.secondary}>← Back</Link>}>
+      <WizardFooter
+        left={
+          <Link to="/paycheques/new/budget" className={btn.secondary}>
+            ← Back
+          </Link>
+        }
+      >
         <SaveTemplateDialog data={data} amounts={draft.allocations} from={`the ${shortDate(draft.payDate)} paycheque`} />
         <button type="button" className={btn.accent} onClick={save} disabled={saving || !status.canContinue}>
           {saving ? 'Saving…' : 'Save paycheque'}
@@ -166,8 +177,20 @@ const compactRange = (start: string, end: string) =>
   start.slice(0, 7) === end.slice(0, 7) ? `${shortDate(start)} – ${Number(end.slice(8))}` : `${shortDate(start)} – ${shortDate(end)}`;
 
 function Summary({
-  label, value, sub, className, valueColor, subColor = 'var(--mute)',
-}: { label: string; value: string; sub: string; className: string; valueColor?: string; subColor?: string }) {
+  label,
+  value,
+  sub,
+  className,
+  valueColor,
+  subColor = 'var(--mute)',
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  className: string;
+  valueColor?: string;
+  subColor?: string;
+}) {
   return (
     <div className={className}>
       <div className="text-[12px] text-mute">{label}</div>

@@ -1,4 +1,5 @@
 # Moneo
+
 Paycheque-centric personal finance dashboard (POC). Design handoff lives in `design_handoff_moneo/`.
 
 ## Develop

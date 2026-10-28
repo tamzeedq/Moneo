@@ -28,7 +28,13 @@ export function SettingsPage() {
         <Card className="flex flex-col gap-4">
           <CardHeader title="Profile" />
           <Field label="Your name" htmlFor="name">
-            <input id="name" className={field} value={name} placeholder="Shown in the Overview greeting" onChange={(e) => setName(e.target.value)} />
+            <input
+              id="name"
+              className={field}
+              value={name}
+              placeholder="Shown in the Overview greeting"
+              onChange={(e) => setName(e.target.value)}
+            />
           </Field>
           <Field label="Appearance">
             <div className="flex gap-1.5">
@@ -61,7 +67,9 @@ export function SettingsPage() {
           )}
           <p className="m-0 text-[12px] text-mute">
             This POC runs on sample data with “today” pinned to {longDay(today())}, so the screens match the designs.{' '}
-            <Link to="/import" className="text-acc">Back up or import →</Link>
+            <Link to="/import" className="text-acc">
+              Back up or import →
+            </Link>
           </p>
           <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
             <div className="text-[13px]">

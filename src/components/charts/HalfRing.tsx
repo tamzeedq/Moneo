@@ -27,7 +27,16 @@ export function HalfRing({ segments, total, height = 104, thickness = 26, gap = 
       <svg viewBox="0 0 260 140" className="block w-full" style={{ height }} aria-hidden>
         <g transform="rotate(180 130 128)">
           {total !== undefined && (
-            <circle cx={130} cy={128} r={100} fill="none" style={{ stroke: 'var(--track)' }} strokeWidth={thickness} pathLength={200} strokeDasharray="100 100" />
+            <circle
+              cx={130}
+              cy={128}
+              r={100}
+              fill="none"
+              style={{ stroke: 'var(--track)' }}
+              strokeWidth={thickness}
+              pathLength={200}
+              strokeDasharray="100 100"
+            />
           )}
           {segments.map((s, i) => {
             const pct = pcts[i];

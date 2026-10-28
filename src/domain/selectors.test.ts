@@ -1,8 +1,23 @@
 import { buildSeed, SEED_TODAY } from '@/data/seed';
 import {
-  budgetPool, budgetWatch, currentPaycheque, distributeTicks, goalNote, leftToAllocate, leftToBudget,
-  netDelta, netPosition, periodInfo, recentTransactions, savingsRate, spendByCategory, spendingPace,
-  spentBetween, splitRows, trailingSavingsRate, allocationsFor,
+  budgetPool,
+  budgetWatch,
+  currentPaycheque,
+  distributeTicks,
+  goalNote,
+  leftToAllocate,
+  leftToBudget,
+  netDelta,
+  netPosition,
+  periodInfo,
+  recentTransactions,
+  savingsRate,
+  spendByCategory,
+  spendingPace,
+  spentBetween,
+  splitRows,
+  trailingSavingsRate,
+  allocationsFor,
 } from './selectors';
 import type { Account, Allocation } from './types';
 
@@ -22,7 +37,9 @@ describe('allocation maths', () => {
     Object.entries(amts).map(([accountId, amount]) => ({ paychequeId: 'x', accountId, amount }));
 
   it('savings rate = TFSA + Emergency + RRSP over net', () => {
-    expect(savingsRate(264000, allocs({ chequing: 110000, tfsa: 58000, spending: 52000, emergency: 12000, rrsp: 32000 }), accounts)).toBeCloseTo(102000 / 264000);
+    expect(
+      savingsRate(264000, allocs({ chequing: 110000, tfsa: 58000, spending: 52000, emergency: 12000, rrsp: 32000 }), accounts),
+    ).toBeCloseTo(102000 / 264000);
     expect(savingsRate(0, [], accounts)).toBe(0);
   });
 
@@ -76,7 +93,11 @@ describe('Overview figures from seed', () => {
   it('latest split has $320 unallocated', () => {
     const rows = splitRows(cur, data.allocations, data.accounts);
     expect(rows.map((r) => [r.name, r.amount])).toEqual([
-      ['Chequing', 110000], ['TFSA', 58000], ['Spending', 52000], ['Emergency', 12000], ['Unallocated', 32000],
+      ['Chequing', 110000],
+      ['TFSA', 58000],
+      ['Spending', 52000],
+      ['Emergency', 12000],
+      ['Unallocated', 32000],
     ]);
     expect(allocationsFor(data.allocations, cur.id)).toHaveLength(4);
   });
@@ -84,15 +105,20 @@ describe('Overview figures from seed', () => {
   it('budget watch top four', () => {
     const rows = budgetWatch(data.budgetLines, data.categories, data.transactions, cur).slice(0, 4);
     expect(rows.map((r) => [r.category.name, Math.round(r.used * 100)])).toEqual([
-      ['Dining', 118], ['Housing', 100], ['Utilities', 89], ['Health', 87],
+      ['Dining', 118],
+      ['Housing', 100],
+      ['Utilities', 89],
+      ['Health', 87],
     ]);
     expect(rows[0].remaining).toBe(-3215);
   });
 
   it('recent transactions are newest first', () => {
-    expect(recentTransactions(data.transactions, today).map((t) => t.merchant).slice(0, 4)).toEqual([
-      'Loblaws', 'Pizzeria on Ossington', 'Presto', 'Shoppers Drug Mart',
-    ]);
+    expect(
+      recentTransactions(data.transactions, today)
+        .map((t) => t.merchant)
+        .slice(0, 4),
+    ).toEqual(['Loblaws', 'Pizzeria on Ossington', 'Presto', 'Shoppers Drug Mart']);
   });
 
   it('goal notes', () => {

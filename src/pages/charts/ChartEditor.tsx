@@ -6,8 +6,19 @@ import { repo } from '@/data/repository';
 import { today } from '@/domain/dates';
 import type { ChartDef, ChartMeasure, MoneoData } from '@/domain/types';
 import {
-  BUCKET_LABELS, chartCsv, computeChart, defaultsFor, formatValue, KIND_LABELS, MEASURES, QUESTIONS, rangeOptions,
-  seriesOf, seriesStats, SWATCHES, unitOf,
+  BUCKET_LABELS,
+  chartCsv,
+  computeChart,
+  defaultsFor,
+  formatValue,
+  KIND_LABELS,
+  MEASURES,
+  QUESTIONS,
+  rangeOptions,
+  seriesOf,
+  seriesStats,
+  SWATCHES,
+  unitOf,
 } from '@/domain/charts';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
@@ -51,7 +62,10 @@ export function ChartEditor() {
       <>
         <PageHeader crumb="Chart Studio" title="Chart not found" actions={<ThemeToggle />} />
         <Card className="text-[13px] text-mute">
-          This chart doesn’t exist any more. <Link to="/charts" className="text-acc">Back to Chart Studio →</Link>
+          This chart doesn’t exist any more.{' '}
+          <Link to="/charts" className="text-acc">
+            Back to Chart Studio →
+          </Link>
         </Card>
       </>
     );
@@ -70,7 +84,13 @@ export function ChartEditor() {
   const setMeasure = (measure: ChartMeasure) => {
     const isDefaultTitle = QUESTIONS.some((q) => q.def.title === def.title) || def.title === 'Untitled chart';
     const q = QUESTIONS.find((x) => x.def.measure === measure)!;
-    update({ ...defaultsFor(measure), measure, color: def.color, notes: def.notes, ...(isDefaultTitle ? { title: q.def.title, question: q.question } : {}) });
+    update({
+      ...defaultsFor(measure),
+      measure,
+      color: def.color,
+      notes: def.notes,
+      ...(isDefaultTitle ? { title: q.def.title, question: q.question } : {}),
+    });
   };
 
   const exportCsv = () => downloadFile(`${slug(def.title)}.csv`, chartCsv(def, result), 'text/csv');
@@ -300,7 +320,13 @@ export function ChartEditor() {
               </div>
             </Field>
           )}
-          {isSeries && <TargetField def={def} unit={unit} onChange={(target) => update({ target, showTarget: target !== undefined && def.showTarget })} />}
+          {isSeries && (
+            <TargetField
+              def={def}
+              unit={unit}
+              onChange={(target) => update({ target, showTarget: target !== undefined && def.showTarget })}
+            />
+          )}
           {isSeries && <Notes def={def} points={points} onChange={(notes) => update({ notes })} />}
           <button type="button" onClick={remove} className="self-start text-[12px] text-mute hover:text-acc">
             Delete chart
@@ -354,7 +380,15 @@ function TargetField({ def, unit, onChange }: { def: ChartDef; unit: 'percent' |
   );
 }
 
-function Notes({ def, points, onChange }: { def: ChartDef; points: ReturnType<typeof seriesOf>; onChange: (n: ChartDef['notes']) => void }) {
+function Notes({
+  def,
+  points,
+  onChange,
+}: {
+  def: ChartDef;
+  points: ReturnType<typeof seriesOf>;
+  onChange: (n: ChartDef['notes']) => void;
+}) {
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState('');
   const [date, setDate] = useState(points.at(-1)?.date ?? '');
@@ -367,7 +401,8 @@ function Notes({ def, points, onChange }: { def: ChartDef; points: ReturnType<ty
         <div key={n.date + n.label} className="group flex justify-between gap-2 text-[12px]">
           <span className="truncate">{n.label}</span>
           <span className="flex flex-none items-center gap-1.5 text-mute">
-            {points.find((p) => p.date === n.date)?.label ?? new Date(n.date + 'T00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
+            {points.find((p) => p.date === n.date)?.label ??
+              new Date(n.date + 'T00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
             <button
               type="button"
               aria-label={`Remove note ${n.label}`}

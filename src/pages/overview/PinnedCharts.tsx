@@ -29,7 +29,12 @@ function PinnedChartCard({ def, data, today }: { def: ChartDef; data: MoneoData;
   const result = computeChart(def, data, today);
   const h = headline(def, result);
   const unpin = async () => {
-    await repo.saveChart({ ...def, status: 'saved', pin: def.pin?.alsoOn?.length ? { ...def.pin, after: '' } : undefined, editedAt: today });
+    await repo.saveChart({
+      ...def,
+      status: 'saved',
+      pin: def.pin?.alsoOn?.length ? { ...def.pin, after: '' } : undefined,
+      editedAt: today,
+    });
     toast(`Unpinned “${def.title}”`);
   };
   return (
@@ -40,14 +45,26 @@ function PinnedChartCard({ def, data, today }: { def: ChartDef; data: MoneoData;
         </Link>
         <Popover.Root>
           <Popover.Trigger asChild>
-            <button type="button" aria-label={`Options for ${def.title}`} className="rounded-[6px] px-1.5 text-[14px] leading-none text-mute hover:bg-panel2 hover:text-ink">
+            <button
+              type="button"
+              aria-label={`Options for ${def.title}`}
+              className="rounded-[6px] px-1.5 text-[14px] leading-none text-mute hover:bg-panel2 hover:text-ink"
+            >
               ···
             </button>
           </Popover.Trigger>
           <Popover.Portal>
-            <Popover.Content align="end" sideOffset={4} className="z-50 flex min-w-36 flex-col rounded-[12px] border border-line bg-panel p-1 text-[13px] text-ink shadow-lg">
-              <Link to={`/charts/${def.id}`} className="rounded-[8px] px-2.5 py-2 hover:bg-panel2">Edit chart</Link>
-              <Link to={`/charts/${def.id}/pin`} className="rounded-[8px] px-2.5 py-2 hover:bg-panel2">Move or resize</Link>
+            <Popover.Content
+              align="end"
+              sideOffset={4}
+              className="z-50 flex min-w-36 flex-col rounded-[12px] border border-line bg-panel p-1 text-[13px] text-ink shadow-lg"
+            >
+              <Link to={`/charts/${def.id}`} className="rounded-[8px] px-2.5 py-2 hover:bg-panel2">
+                Edit chart
+              </Link>
+              <Link to={`/charts/${def.id}/pin`} className="rounded-[8px] px-2.5 py-2 hover:bg-panel2">
+                Move or resize
+              </Link>
               <Popover.Close asChild>
                 <button type="button" onClick={unpin} className="rounded-[8px] px-2.5 py-2 text-left text-acc hover:bg-panel2">
                   Unpin

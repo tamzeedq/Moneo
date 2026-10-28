@@ -108,7 +108,10 @@ function Blocks({ accounts, amounts, total, height }: { accounts: Account[]; amo
       {left > 0 && (
         <div
           className="flex-none"
-          style={{ width: `${(left / total) * 100}%`, background: 'repeating-linear-gradient(135deg, var(--track) 0 6px, transparent 6px 12px)' }}
+          style={{
+            width: `${(left / total) * 100}%`,
+            background: 'repeating-linear-gradient(135deg, var(--track) 0 6px, transparent 6px 12px)',
+          }}
           title={`${money(left)} unallocated`}
         />
       )}

@@ -42,4 +42,8 @@ export function pinnedByRow(charts: ChartDef[]): ChartDef[][] {
 }
 
 /** Columns out of 4 on the Overview, and rows of map height. */
-export const PIN_SPAN: Record<PinSize, { cols: number; rows: number }> = { S: { cols: 1, rows: 1 }, M: { cols: 2, rows: 1 }, L: { cols: 4, rows: 2 } };
+export const PIN_SPAN: Record<PinSize, { cols: number; rows: number }> = {
+  S: { cols: 1, rows: 1 },
+  M: { cols: 2, rows: 1 },
+  L: { cols: 4, rows: 2 },
+};

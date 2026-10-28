@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { ISODate, MoneoData } from '@/domain/types';
 import { money } from '@/domain/money';
-import {
-  currentPaycheque, netDelta, netHistory, netPosition, spentBetween, trailingSavingsRate, type NetRange,
-} from '@/domain/selectors';
+import { currentPaycheque, netDelta, netHistory, netPosition, spentBetween, trailingSavingsRate, type NetRange } from '@/domain/selectors';
 import { AreaLineChart } from '@/components/charts/AreaLineChart';
 import { axisLabels } from '@/components/charts/axisLabels';
 import { HeroMoney } from '@/components/ui/Money';

@@ -3,7 +3,15 @@ import type { MoneoData } from '@/domain/types';
 import { money } from '@/domain/money';
 import { shortDate } from '@/domain/dates';
 import {
-  draftPool, goalImpact, payPeriod, periodLabel, previousUnallocated, SPLIT_STEP, splitAccounts, splitStatus, templateAllocations,
+  draftPool,
+  goalImpact,
+  payPeriod,
+  periodLabel,
+  previousUnallocated,
+  SPLIT_STEP,
+  splitAccounts,
+  splitStatus,
+  templateAllocations,
   type PaychequeDraft,
 } from '@/domain/wizard';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -55,7 +63,12 @@ export function SplitStep({ data, draft }: { data: MoneoData; draft: PaychequeDr
             </div>
           </div>
         </div>
-        <AllocationBar accounts={accounts} allocations={draft.allocations} net={draft.net} onChange={(allocations) => update({ allocations })} />
+        <AllocationBar
+          accounts={accounts}
+          allocations={draft.allocations}
+          net={draft.net}
+          onChange={(allocations) => update({ allocations })}
+        />
         <div className="flex flex-wrap gap-5 text-[12px]">
           {accounts.map((a) => (
             <span key={a.id} className="flex items-center gap-[7px]">
@@ -102,7 +115,8 @@ export function SplitStep({ data, draft }: { data: MoneoData; draft: PaychequeDr
             <span>Steppers move $20 · type to set exact</span>
             {prev && (
               <span>
-                {shortDate(prev.paycheque.payDate)} {prev.left > 0 ? `left ${money(prev.left, { decimals: 0 })} unallocated` : 'was fully allocated'}
+                {shortDate(prev.paycheque.payDate)}{' '}
+                {prev.left > 0 ? `left ${money(prev.left, { decimals: 0 })} unallocated` : 'was fully allocated'}
               </span>
             )}
           </div>
@@ -119,7 +133,10 @@ export function SplitStep({ data, draft }: { data: MoneoData; draft: PaychequeDr
                 </div>
                 <div className="flex h-[7px] overflow-hidden rounded-[4px] bg-track">
                   <div style={{ width: `${(goal.current / goal.target) * 100}%`, background: goal.color }} />
-                  <div className="transition-[width] duration-200" style={{ width: `${((after - goal.current) / goal.target) * 100}%`, background: goal.color, opacity: 0.45 }} />
+                  <div
+                    className="transition-[width] duration-200"
+                    style={{ width: `${((after - goal.current) / goal.target) * 100}%`, background: goal.color, opacity: 0.45 }}
+                  />
                 </div>
                 <div className="text-[11px] text-mute">
                   {money(after, { decimals: 0 })} of {money(goal.target, { decimals: 0 })} · {Math.round((after / goal.target) * 100)}%
@@ -136,7 +153,15 @@ export function SplitStep({ data, draft }: { data: MoneoData; draft: PaychequeDr
         </div>
       </div>
 
-      <WizardFooter left={<Link to="/paycheques/new/details" className={btn.secondary}>← Back</Link>} status={status.label} tone={status.tone}>
+      <WizardFooter
+        left={
+          <Link to="/paycheques/new/details" className={btn.secondary}>
+            ← Back
+          </Link>
+        }
+        status={status.label}
+        tone={status.tone}
+      >
         <button type="button" className={btn.primary} disabled={!status.canContinue} onClick={() => navigate('/paycheques/new/budget')}>
           Continue →
         </button>

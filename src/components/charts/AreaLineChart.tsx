@@ -32,11 +32,23 @@ export function AreaLineChart({
   const id = useSvgId();
   const { linePath, areaPath } = useMemo(() => {
     if (values.length < 2) return { linePath: '', areaPath: '' };
-    const x = scaleLinear().domain([0, values.length - 1]).range([0, width]);
-    const min = Math.min(...values), max = Math.max(...values);
-    const y = scaleLinear().domain([min, max === min ? min + 1 : max]).range([H * (1 - padBottom), H * padTop]);
-    const l = line<number>().x((_, i) => x(i)).y((v) => y(v)).curve(curveMonotoneX);
-    const a = area<number>().x((_, i) => x(i)).y0(H).y1((v) => y(v)).curve(curveMonotoneX);
+    const x = scaleLinear()
+      .domain([0, values.length - 1])
+      .range([0, width]);
+    const min = Math.min(...values),
+      max = Math.max(...values);
+    const y = scaleLinear()
+      .domain([min, max === min ? min + 1 : max])
+      .range([H * (1 - padBottom), H * padTop]);
+    const l = line<number>()
+      .x((_, i) => x(i))
+      .y((v) => y(v))
+      .curve(curveMonotoneX);
+    const a = area<number>()
+      .x((_, i) => x(i))
+      .y0(H)
+      .y1((v) => y(v))
+      .curve(curveMonotoneX);
     return { linePath: l(values) ?? '', areaPath: a(values) ?? '' };
   }, [values, width, padTop, padBottom]);
 
@@ -50,9 +62,7 @@ export function AreaLineChart({
       </defs>
       {Array.from({ length: gridLines }, (_, i) => {
         const gy = (H / (gridLines + 1)) * (i + 1);
-        return (
-          <line key={i} x1={0} x2={width} y1={gy} y2={gy} style={{ stroke: 'var(--line)' }} strokeDasharray="2 4" />
-        );
+        return <line key={i} x1={0} x2={width} y1={gy} y2={gy} style={{ stroke: 'var(--line)' }} strokeDasharray="2 4" />;
       })}
       <path d={areaPath} fill={`url(#${id})`} />
       <path d={linePath} fill="none" style={{ stroke: color }} strokeWidth={2} strokeLinecap="round" vectorEffect="non-scaling-stroke" />

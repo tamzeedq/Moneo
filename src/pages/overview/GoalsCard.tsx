@@ -17,10 +17,7 @@ export function GoalsCard({ data }: { data: MoneoData }) {
             </span>
           </div>
           <div className="h-[7px] rounded-[4px] bg-track">
-            <div
-              className="h-full rounded-[4px]"
-              style={{ width: `${Math.min(g.current / g.target, 1) * 100}%`, background: g.color }}
-            />
+            <div className="h-full rounded-[4px]" style={{ width: `${Math.min(g.current / g.target, 1) * 100}%`, background: g.color }} />
           </div>
           <div className="text-[11px] text-mute">{goalNote(g)}</div>
         </div>

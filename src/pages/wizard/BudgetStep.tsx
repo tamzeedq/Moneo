@@ -5,7 +5,15 @@ import { money, sum } from '@/domain/money';
 import { addDaysISO, shortDate, today } from '@/domain/dates';
 import { currentPaycheque } from '@/domain/selectors';
 import {
-  averagePlan, BUDGET_STEP, budgetStatus, draftPool, lastPlan, lastSpent, payPeriod, periodLabel, type PaychequeDraft,
+  averagePlan,
+  BUDGET_STEP,
+  budgetStatus,
+  draftPool,
+  lastPlan,
+  lastSpent,
+  payPeriod,
+  periodLabel,
+  type PaychequeDraft,
 } from '@/domain/wizard';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { InitialAvatar } from '@/components/ui/Avatar';
@@ -37,7 +45,9 @@ export function BudgetStep({ data, draft }: { data: MoneoData; draft: PaychequeD
     ? sum(data.budgetLines.filter((l) => l.paychequeId === lastPay.id).map((l) => l.plan)) - sum(Object.values(last))
     : 0;
   const missing = data.categories.filter((c) => !draft.budget.some((b) => b.categoryId === c.id)).sort((a, b) => a.order - b.order);
-  const bills = data.bills.filter((b) => b.due >= draft.payDate && b.due <= addDaysISO(draft.payDate, 30)).sort((a, b) => a.due.localeCompare(b.due));
+  const bills = data.bills
+    .filter((b) => b.due >= draft.payDate && b.due <= addDaysISO(draft.payDate, 30))
+    .sort((a, b) => a.due.localeCompare(b.due));
 
   const setPlan = (categoryId: string, plan: number) =>
     update((d) => ({ budgetMode: 'custom', budget: d.budget.map((b) => (b.categoryId === categoryId ? { ...b, plan } : b)) }));
@@ -62,7 +72,16 @@ export function BudgetStep({ data, draft }: { data: MoneoData; draft: PaychequeD
               <button
                 type="button"
                 className={chip(draft.budgetMode === 'average')}
-                onClick={() => update({ budgetMode: 'average', budget: averagePlan(data, now, draft.budget.map((b) => b.categoryId)) })}
+                onClick={() =>
+                  update({
+                    budgetMode: 'average',
+                    budget: averagePlan(
+                      data,
+                      now,
+                      draft.budget.map((b) => b.categoryId),
+                    ),
+                  })
+                }
               >
                 3-paycheque average
               </button>
@@ -73,7 +92,11 @@ export function BudgetStep({ data, draft }: { data: MoneoData; draft: PaychequeD
                   </button>
                 </Popover.Trigger>
                 <Popover.Portal>
-                  <Popover.Content align="end" sideOffset={6} className="z-50 flex min-w-44 flex-col rounded-[12px] border border-line bg-panel p-1 text-[13px] text-ink shadow-lg">
+                  <Popover.Content
+                    align="end"
+                    sideOffset={6}
+                    className="z-50 flex min-w-44 flex-col rounded-[12px] border border-line bg-panel p-1 text-[13px] text-ink shadow-lg"
+                  >
                     {missing.map((c) => (
                       <Popover.Close asChild key={c.id}>
                         <button
@@ -113,7 +136,10 @@ export function BudgetStep({ data, draft }: { data: MoneoData; draft: PaychequeD
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="relative h-2 rounded-[4px] bg-track">
-                    <div className="h-full rounded-[4px] transition-[width] duration-200" style={{ width: `${Math.min(b.plan / scale, 1) * 100}%`, background: c.color }} />
+                    <div
+                      className="h-full rounded-[4px] transition-[width] duration-200"
+                      style={{ width: `${Math.min(b.plan / scale, 1) * 100}%`, background: c.color }}
+                    />
                     <div
                       className="absolute -top-[3px] -bottom-[3px] w-0.5 bg-ink opacity-55"
                       style={{ left: `${Math.min(spent / scale, 1) * 100}%` }}
@@ -190,7 +216,15 @@ export function BudgetStep({ data, draft }: { data: MoneoData; draft: PaychequeD
         </div>
       </div>
 
-      <WizardFooter left={<Link to="/paycheques/new/split" className={btn.secondary}>← Back</Link>} status={status.label} tone={status.tone}>
+      <WizardFooter
+        left={
+          <Link to="/paycheques/new/split" className={btn.secondary}>
+            ← Back
+          </Link>
+        }
+        status={status.label}
+        tone={status.tone}
+      >
         <button type="button" className={btn.primary} onClick={() => navigate('/paycheques/new/review')}>
           Review →
         </button>

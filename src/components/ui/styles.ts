@@ -1,10 +1,8 @@
 /** Shared class strings for the design's buttons, chips and inputs. */
 export const btn = {
   secondary: 'rounded-[11px] border border-line px-3.5 py-[9px] text-[13px] hover:border-faint disabled:opacity-50',
-  primary:
-    'rounded-[11px] bg-inv px-[18px] py-2.5 text-[13px] font-medium text-inv-ink disabled:cursor-not-allowed disabled:opacity-40',
-  accent:
-    'rounded-[11px] bg-acc px-[18px] py-2.5 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-40',
+  primary: 'rounded-[11px] bg-inv px-[18px] py-2.5 text-[13px] font-medium text-inv-ink disabled:cursor-not-allowed disabled:opacity-40',
+  accent: 'rounded-[11px] bg-acc px-[18px] py-2.5 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-40',
 };
 
 export const chip = (on: boolean, muted = false) =>

@@ -15,25 +15,28 @@ import { ImportExportPage } from '@/pages/import/ImportExportPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { applyTheme, useUI } from '@/stores/ui';
 
-const router = createBrowserRouter([
-  {
-    element: <AppShell />,
-    children: [
-      { path: '/', element: <OverviewPage /> },
-      { path: '/paycheques', element: <PaychequesPage /> },
-      { path: '/paycheques/new/:step?', element: <PaychequeWizard /> },
-      { path: '/budget', element: <BudgetPage /> },
-      { path: '/accounts', element: <AccountsPage /> },
-      { path: '/charts', element: <ChartLibrary /> },
-      { path: '/charts/new', element: <NewChart /> },
-      { path: '/charts/:id', element: <ChartEditor /> },
-      { path: '/charts/:id/pin', element: <PinChart /> },
-      { path: '/import', element: <ImportExportPage /> },
-      { path: '/settings', element: <SettingsPage /> },
-      { path: '*', element: <PlaceholderPage title="Not found" /> },
-    ],
-  },
-], { future: { v7_relativeSplatPath: true } });
+const router = createBrowserRouter(
+  [
+    {
+      element: <AppShell />,
+      children: [
+        { path: '/', element: <OverviewPage /> },
+        { path: '/paycheques', element: <PaychequesPage /> },
+        { path: '/paycheques/new/:step?', element: <PaychequeWizard /> },
+        { path: '/budget', element: <BudgetPage /> },
+        { path: '/accounts', element: <AccountsPage /> },
+        { path: '/charts', element: <ChartLibrary /> },
+        { path: '/charts/new', element: <NewChart /> },
+        { path: '/charts/:id', element: <ChartEditor /> },
+        { path: '/charts/:id/pin', element: <PinChart /> },
+        { path: '/import', element: <ImportExportPage /> },
+        { path: '/settings', element: <SettingsPage /> },
+        { path: '*', element: <PlaceholderPage title="Not found" /> },
+      ],
+    },
+  ],
+  { future: { v7_relativeSplatPath: true } },
+);
 
 export function App() {
   const theme = useUI((s) => s.theme);

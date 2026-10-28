@@ -1,7 +1,14 @@
 import { buildSeed, SEED_TODAY } from '@/data/seed';
 import {
-  accountActivity, allocationMap, balanceHistory, budgetSummary, budgetedPaycheques, composition, needsAttention,
-  paychequeHistory, sameAllocations,
+  accountActivity,
+  allocationMap,
+  balanceHistory,
+  budgetSummary,
+  budgetedPaycheques,
+  composition,
+  needsAttention,
+  paychequeHistory,
+  sameAllocations,
 } from './views';
 
 const data = buildSeed();

@@ -8,7 +8,13 @@ import type { MoneoData } from '@/domain/types';
 import { money, sum } from '@/domain/money';
 import { shortDate, today } from '@/domain/dates';
 import {
-  buildRows, detectColumns, detectDateOrder, rowsToTransactions, transactionsCsv, type ColumnMapping, type DateOrder,
+  buildRows,
+  detectColumns,
+  detectDateOrder,
+  rowsToTransactions,
+  transactionsCsv,
+  type ColumnMapping,
+  type DateOrder,
 } from '@/domain/csvImport';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
@@ -82,7 +88,7 @@ function ImportCard({ data }: { data: MoneoData }) {
     setError(null);
     setLoaded({ name, headers, records: parsed.data });
     setMapping(m);
-    setOrder(detectDateOrder(parsed.data.map((r) => (m.date ? r[m.date] ?? '' : ''))));
+    setOrder(detectDateOrder(parsed.data.map((r) => (m.date ? (r[m.date] ?? '') : ''))));
     setOverrides({});
   };
 
@@ -93,9 +99,18 @@ function ImportCard({ data }: { data: MoneoData }) {
 
   const rows = useMemo(() => {
     if (!loaded || !mapping) return [];
-    return buildRows(loaded.records, mapping, { accountId, existing: data.transactions, categories: data.categories, dateOrder: order }).map((r) => {
+    return buildRows(loaded.records, mapping, {
+      accountId,
+      existing: data.transactions,
+      categories: data.categories,
+      dateOrder: order,
+    }).map((r) => {
       const o = overrides[r.line] ?? {};
-      return { ...r, include: r.error ? false : o.include ?? r.include, categoryId: o.categoryId !== undefined ? (o.categoryId === NONE ? undefined : o.categoryId) : r.categoryId };
+      return {
+        ...r,
+        include: r.error ? false : (o.include ?? r.include),
+        categoryId: o.categoryId !== undefined ? (o.categoryId === NONE ? undefined : o.categoryId) : r.categoryId,
+      };
     });
   }, [loaded, mapping, accountId, order, overrides, data.transactions, data.categories]);
 
@@ -153,7 +168,10 @@ function ImportCard({ data }: { data: MoneoData }) {
     );
   }
 
-  const colOptions = (optional: boolean) => [...(optional ? [{ value: NONE, label: <span className="text-mute">None</span> }] : []), ...loaded.headers.map((h) => ({ value: h, label: h }))];
+  const colOptions = (optional: boolean) => [
+    ...(optional ? [{ value: NONE, label: <span className="text-mute">None</span> }] : []),
+    ...loaded.headers.map((h) => ({ value: h, label: h })),
+  ];
   const setCol = (k: keyof ColumnMapping) => (v: string) => setMapping({ ...mapping, [k]: v === NONE ? null : v });
   const split = !mapping.amount;
 
@@ -205,22 +223,46 @@ function ImportCard({ data }: { data: MoneoData }) {
             label="Into account"
             value={accountId}
             onChange={setAccountId}
-            options={[...data.accounts].sort((a, b) => a.order - b.order).map((a) => ({
-              value: a.id,
-              label: (
-                <span className="flex items-center gap-2">
-                  <Swatch color={a.color} />
-                  {a.name}
-                </span>
-              ),
-            }))}
+            options={[...data.accounts]
+              .sort((a, b) => a.order - b.order)
+              .map((a) => ({
+                value: a.id,
+                label: (
+                  <span className="flex items-center gap-2">
+                    <Swatch color={a.color} />
+                    {a.name}
+                  </span>
+                ),
+              }))}
           />
         </Field>
         <div className="col-span-2 flex items-end gap-1.5 max-md:col-span-2">
-          <button type="button" className={chip(!split)} onClick={() => setMapping({ ...mapping, amount: mapping.amount ?? loaded.headers.find((h) => /amount/i.test(h)) ?? loaded.headers[0], debit: null, credit: null })}>
+          <button
+            type="button"
+            className={chip(!split)}
+            onClick={() =>
+              setMapping({
+                ...mapping,
+                amount: mapping.amount ?? loaded.headers.find((h) => /amount/i.test(h)) ?? loaded.headers[0],
+                debit: null,
+                credit: null,
+              })
+            }
+          >
             One amount column
           </button>
-          <button type="button" className={chip(split)} onClick={() => setMapping({ ...mapping, amount: null, debit: mapping.debit ?? loaded.headers[0], credit: mapping.credit ?? loaded.headers[0] })}>
+          <button
+            type="button"
+            className={chip(split)}
+            onClick={() =>
+              setMapping({
+                ...mapping,
+                amount: null,
+                debit: mapping.debit ?? loaded.headers[0],
+                credit: mapping.credit ?? loaded.headers[0],
+              })
+            }
+          >
             Withdrawals + deposits
           </button>
         </div>
@@ -243,7 +285,13 @@ function ImportCard({ data }: { data: MoneoData }) {
                   type="checkbox"
                   aria-label="Select all"
                   checked={rows.some((r) => !r.error) && rows.filter((r) => !r.error).every((r) => r.include)}
-                  onChange={(e) => setOverrides(Object.fromEntries(rows.filter((r) => !r.error).map((r) => [r.line, { ...overrides[r.line], include: e.target.checked }])))}
+                  onChange={(e) =>
+                    setOverrides(
+                      Object.fromEntries(
+                        rows.filter((r) => !r.error).map((r) => [r.line, { ...overrides[r.line], include: e.target.checked }]),
+                      ),
+                    )
+                  }
                   className="accent-[var(--acc)]"
                 />
               </th>
@@ -294,7 +342,10 @@ function ImportCard({ data }: { data: MoneoData }) {
                     <span className="text-[12px] text-mute">{r.amount !== null && r.amount > 0 ? 'Income' : ''}</span>
                   )}
                 </td>
-                <td className="py-1.5 pr-3 text-right font-medium whitespace-nowrap" style={{ color: r.amount !== null && r.amount > 0 ? 'var(--pos)' : undefined }}>
+                <td
+                  className="py-1.5 pr-3 text-right font-medium whitespace-nowrap"
+                  style={{ color: r.amount !== null && r.amount > 0 ? 'var(--pos)' : undefined }}
+                >
                   {r.amount === null ? '—' : money(r.amount, { signed: true })}
                 </td>
               </tr>
@@ -324,7 +375,11 @@ function ImportCard({ data }: { data: MoneoData }) {
 function ExportCard({ data }: { data: MoneoData }) {
   const stamp = today();
   const backup = () =>
-    downloadFile(`moneo-backup-${stamp}.json`, JSON.stringify({ app: 'moneo', format: 1, seedVersion: SEED_VERSION, exportedAt: new Date().toISOString(), data }, null, 1), 'application/json');
+    downloadFile(
+      `moneo-backup-${stamp}.json`,
+      JSON.stringify({ app: 'moneo', format: 1, seedVersion: SEED_VERSION, exportedAt: new Date().toISOString(), data }, null, 1),
+      'application/json',
+    );
   return (
     <Card className="flex flex-col gap-3">
       <CardHeader title="Export" />
@@ -332,7 +387,9 @@ function ExportCard({ data }: { data: MoneoData }) {
       <ExportRow
         label="Transactions"
         sub={`${data.transactions.length} rows, for a spreadsheet`}
-        onClick={() => downloadFile(`moneo-transactions-${stamp}.csv`, transactionsCsv(data.transactions, data.categories, data.accounts), 'text/csv')}
+        onClick={() =>
+          downloadFile(`moneo-transactions-${stamp}.csv`, transactionsCsv(data.transactions, data.categories, data.accounts), 'text/csv')
+        }
         action=".csv"
       />
     </Card>
@@ -380,7 +437,9 @@ function RestoreCard() {
   return (
     <Card className="flex flex-col gap-3">
       <CardHeader title="Restore" />
-      <p className="m-0 text-[12px] text-mute">Replace everything in Moneo with a backup file. Download a backup first if you want to keep what’s here.</p>
+      <p className="m-0 text-[12px] text-mute">
+        Replace everything in Moneo with a backup file. Download a backup first if you want to keep what’s here.
+      </p>
       <button type="button" className={`${btn.secondary} self-start`} onClick={() => input.current?.click()}>
         Choose backup…
       </button>
@@ -402,7 +461,8 @@ function RestoreCard() {
       >
         {pending && (
           <div className="rounded-[10px] bg-panel2 p-3 text-[12px] text-mute">
-            {pending.data.accounts.length} accounts · {pending.data.paycheques.length} paycheques · {pending.data.transactions.length} transactions · {pending.data.charts.length} charts
+            {pending.data.accounts.length} accounts · {pending.data.paycheques.length} paycheques · {pending.data.transactions.length}{' '}
+            transactions · {pending.data.charts.length} charts
           </div>
         )}
       </ModalForm>

@@ -51,7 +51,15 @@ export function AccountsPage() {
 
   return (
     <>
-      <PageHeader title="Accounts" actions={<><ThemeToggle /><AddAccountDialog data={data} onAdded={select} /></>} />
+      <PageHeader
+        title="Accounts"
+        actions={
+          <>
+            <ThemeToggle />
+            <AddAccountDialog data={data} onAdded={select} />
+          </>
+        }
+      />
       <div className="grid grid-cols-[380px_minmax(0,1fr)] items-start gap-[14px] max-lg:grid-cols-1">
         <Card className="flex flex-col gap-3 px-[22px]! py-5!">
           <div className="text-[13px] text-mute">Net position</div>
@@ -72,7 +80,10 @@ export function AccountsPage() {
             {accounts.map((a) => {
               const d = pay ? accountDelta(a, data.balanceSnapshots, pay.periodStart) : 0;
               const color = d >= 0 ? 'var(--pos)' : 'var(--acc)';
-              const series = snapshotsFor(data.balanceSnapshots, a.id).filter((s) => s.date <= now).slice(-20).map((s) => s.balance);
+              const series = snapshotsFor(data.balanceSnapshots, a.id)
+                .filter((s) => s.date <= now)
+                .slice(-20)
+                .map((s) => s.balance);
               const on = a.id === selected?.id;
               return (
                 <button
@@ -99,7 +110,9 @@ export function AccountsPage() {
             })}
           </div>
         </Card>
-        {selected && <Detail key={selected.id} data={data} account={selected} today={now} openUpdate={params.get('update') === selected.id} />}
+        {selected && (
+          <Detail key={selected.id} data={data} account={selected} today={now} openUpdate={params.get('update') === selected.id} />
+        )}
       </div>
     </>
   );
@@ -175,17 +188,31 @@ function UpdateBalanceDialog({ account, today, defaultOpen }: { account: Account
     <ModalForm
       open={open}
       onOpenChange={setOpen}
-      trigger={<button type="button" className="text-[12px] text-mute hover:text-ink">Update balance</button>}
+      trigger={
+        <button type="button" className="text-[12px] text-mute hover:text-ink">
+          Update balance
+        </button>
+      }
       title={`Update ${account.name}`}
       description={`Currently ${money(account.balance)}. The new balance is recorded for ${shortDate(today)}.`}
       submitLabel="Update"
       canSubmit={value !== null}
       onSubmit={save}
     >
-      <input autoFocus inputMode="decimal" className={field} placeholder={(account.balance / 100).toFixed(2)} value={text} onChange={(e) => setText(e.target.value)} />
+      <input
+        autoFocus
+        inputMode="decimal"
+        className={field}
+        placeholder={(account.balance / 100).toFixed(2)}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
       {value !== null && (
         <div className="text-[12px] text-mute">
-          Change: <span style={{ color: value - account.balance >= 0 ? 'var(--pos)' : 'var(--acc)' }}>{money(value - account.balance, { signed: true })}</span>
+          Change:{' '}
+          <span style={{ color: value - account.balance >= 0 ? 'var(--pos)' : 'var(--acc)' }}>
+            {money(value - account.balance, { signed: true })}
+          </span>
         </div>
       )}
     </ModalForm>
@@ -220,7 +247,11 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
     <ModalForm
       open={open}
       onOpenChange={setOpen}
-      trigger={<button type="button" className={`${btn.primary} px-4!`}>+ Add account</button>}
+      trigger={
+        <button type="button" className={`${btn.primary} px-4!`}>
+          + Add account
+        </button>
+      }
       title="Add account"
       description="Tracked manually. Add it to a paycheque split from a template later."
       submitLabel="Add account"
@@ -228,13 +259,32 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
       onSubmit={save}
     >
       <Field label="Name" htmlFor="acct-name">
-        <input id="acct-name" autoFocus className={field} placeholder="e.g. Car fund" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          id="acct-name"
+          autoFocus
+          className={field}
+          placeholder="e.g. Car fund"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </Field>
       <Field label="Type">
-        <Select label="Type" value={kind} onChange={(v) => setKind(v as AccountKind)} options={KINDS.map((k) => ({ value: k.value, label: k.label }))} />
+        <Select
+          label="Type"
+          value={kind}
+          onChange={(v) => setKind(v as AccountKind)}
+          options={KINDS.map((k) => ({ value: k.value, label: k.label }))}
+        />
       </Field>
       <Field label={kind === 'credit' ? 'Amount owing' : 'Current balance'} htmlFor="acct-bal">
-        <input id="acct-bal" inputMode="decimal" className={field} placeholder="0.00" value={text} onChange={(e) => setText(e.target.value)} />
+        <input
+          id="acct-bal"
+          inputMode="decimal"
+          className={field}
+          placeholder="0.00"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
       </Field>
     </ModalForm>
   );

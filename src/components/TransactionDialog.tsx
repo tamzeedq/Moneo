@@ -36,7 +36,10 @@ function TransactionForm() {
   const [adjust, setAdjust] = useState(true);
 
   const history = useMemo(() => merchantHistory(data?.transactions ?? []), [data?.transactions]);
-  const merchants = useMemo(() => [...new Set((data?.transactions ?? []).filter((t) => t.amount < 0).map((t) => t.merchant))].sort(), [data?.transactions]);
+  const merchants = useMemo(
+    () => [...new Set((data?.transactions ?? []).filter((t) => t.amount < 0).map((t) => t.merchant))].sort(),
+    [data?.transactions],
+  );
   if (!data) return null;
 
   const accounts = [...data.accounts].sort((a, b) => a.order - b.order);
@@ -56,7 +59,16 @@ function TransactionForm() {
   const save = async () => {
     if (!valid) return;
     await repo.addTransactions(
-      [{ id: newId(), date, merchant: merchant.trim(), amount: signed!, accountId: account.id, categoryId: direction === 'out' && categoryId !== NONE ? categoryId : undefined }],
+      [
+        {
+          id: newId(),
+          date,
+          merchant: merchant.trim(),
+          amount: signed!,
+          accountId: account.id,
+          categoryId: direction === 'out' && categoryId !== NONE ? categoryId : undefined,
+        },
+      ],
       { adjustBalances: adjust, date: today() },
     );
     toast(`Added ${merchant.trim()} · ${money(signed!, { signed: true })}`);
@@ -102,7 +114,14 @@ function TransactionForm() {
         </div>
       </Field>
       <Field label="Merchant" htmlFor="tx-merchant">
-        <input id="tx-merchant" list="tx-merchants" className={field} placeholder="e.g. Loblaws" value={merchant} onChange={(e) => onMerchant(e.target.value)} />
+        <input
+          id="tx-merchant"
+          list="tx-merchants"
+          className={field}
+          placeholder="e.g. Loblaws"
+          value={merchant}
+          onChange={(e) => onMerchant(e.target.value)}
+        />
         <datalist id="tx-merchants">
           {merchants.map((m) => (
             <option key={m} value={m} />
@@ -121,15 +140,17 @@ function TransactionForm() {
               }}
               options={[
                 { value: NONE, label: <span className="text-mute">Uncategorised</span> },
-                ...[...data.categories].sort((a, b) => a.order - b.order).map((c) => ({
-                  value: c.id,
-                  label: (
-                    <span className="flex items-center gap-2">
-                      <Swatch color={c.color} round />
-                      {c.name}
-                    </span>
-                  ),
-                })),
+                ...[...data.categories]
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    value: c.id,
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <Swatch color={c.color} round />
+                        {c.name}
+                      </span>
+                    ),
+                  })),
               ]}
             />
           </Field>

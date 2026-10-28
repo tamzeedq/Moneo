@@ -24,7 +24,12 @@ export function SeriesPlot({ def, points, unit, height = 300 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<number | null>(null);
   const n = points.length;
-  if (!n) return <div className="grid place-items-center text-[13px] text-mute" style={{ height }}>No data in this range yet</div>;
+  if (!n)
+    return (
+      <div className="grid place-items-center text-[13px] text-mute" style={{ height }}>
+        No data in this range yet
+      </div>
+    );
 
   const vals = points.map((p) => p.value);
   const target = def.showTarget ? def.target : undefined;
@@ -37,7 +42,7 @@ export function SeriesPlot({ def, points, unit, height = 300 }: Props) {
   const ticks = y.ticks(4).filter((t) => t >= lo && t <= hi);
   const pct = (v: number) => y(v) * 100; // % from the bottom
   const X = (i: number) => ((i + 0.5) / n) * W;
-  const Y = (v: number) => height - (y(v) * height);
+  const Y = (v: number) => height - y(v) * height;
   const d = vals.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
   const bw = (W / n) * 0.56;
   const notes = def.showNotes ? placeNotes(def.notes, points) : [];
@@ -68,7 +73,9 @@ export function SeriesPlot({ def, points, unit, height = 300 }: Props) {
           <div key={t} className="absolute inset-x-0 border-t border-dashed border-line" style={{ bottom: `${pct(t)}%` }} />
         ))}
         <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" className="absolute inset-0 size-full overflow-visible" aria-hidden>
-          {def.kind === 'area' && <path d={`${d} L${X(n - 1)} ${height} L${X(0)} ${height} Z`} style={{ fill: def.color }} fillOpacity={0.16} />}
+          {def.kind === 'area' && (
+            <path d={`${d} L${X(n - 1)} ${height} L${X(0)} ${height} Z`} style={{ fill: def.color }} fillOpacity={0.16} />
+          )}
           {def.kind === 'bars' &&
             vals.map((v, i) => (
               <rect
@@ -82,11 +89,22 @@ export function SeriesPlot({ def, points, unit, height = 300 }: Props) {
               />
             ))}
           {def.kind !== 'bars' && (
-            <path d={d} fill="none" style={{ stroke: def.color }} strokeWidth={2.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+            <path
+              d={d}
+              fill="none"
+              style={{ stroke: def.color }}
+              strokeWidth={2.5}
+              vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
           )}
         </svg>
         {target !== undefined && (
-          <div className="pointer-events-none absolute inset-x-0 border-t-2 border-dashed border-ink opacity-45" style={{ bottom: `${pct(target)}%` }} />
+          <div
+            className="pointer-events-none absolute inset-x-0 border-t-2 border-dashed border-ink opacity-45"
+            style={{ bottom: `${pct(target)}%` }}
+          />
         )}
         {notes.map((a) => (
           <div key={a.label + a.date} className="pointer-events-none">

@@ -4,14 +4,22 @@
  */
 import { addDays, addMonths, endOfMonth, getDate, setDate } from 'date-fns';
 import type {
-  Account, Allocation, BudgetLine, Category, Cents, Goal, ISODate, MoneoData, Paycheque, Repeats, SplitTemplate,
+  Account,
+  Allocation,
+  BudgetLine,
+  Category,
+  Cents,
+  Goal,
+  ISODate,
+  MoneoData,
+  Paycheque,
+  Repeats,
+  SplitTemplate,
 } from './types';
 import { addDaysISO, parse, shortDate, toISO } from './dates';
 import { newId } from '@/lib/id';
 import { money, sum } from './money';
-import {
-  allocationsFor, budgetPool, currentPaycheque, leftToAllocate, leftToBudget, pastPaycheques, spendByCategory,
-} from './selectors';
+import { allocationsFor, budgetPool, currentPaycheque, leftToAllocate, leftToBudget, pastPaycheques, spendByCategory } from './selectors';
 
 export const WIZARD_STEPS = ['details', 'split', 'budget', 'review'] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
@@ -130,14 +138,18 @@ export function goalImpact(goals: Goal[], allocations: Record<string, Cents>): G
   return [...goals]
     .sort((a, b) => a.order - b.order)
     .map((goal) => {
-      const add = goal.accountId ? allocations[goal.accountId] ?? 0 : 0;
+      const add = goal.accountId ? (allocations[goal.accountId] ?? 0) : 0;
       return { goal, add, after: Math.min(goal.current + add, goal.target) };
     });
 }
 
 export function savingsOf(accounts: Account[], allocations: Record<string, Cents>): Cents {
   const savings = new Set(accounts.filter((a) => ['tfsa', 'emergency', 'rrsp'].includes(a.kind)).map((a) => a.id));
-  return sum(Object.entries(allocations).filter(([id]) => savings.has(id)).map(([, v]) => v));
+  return sum(
+    Object.entries(allocations)
+      .filter(([id]) => savings.has(id))
+      .map(([, v]) => v),
+  );
 }
 
 export function draftPool(accounts: Account[], allocations: Record<string, Cents>): Cents {
@@ -145,7 +157,9 @@ export function draftPool(accounts: Account[], allocations: Record<string, Cents
 }
 
 const toAllocations = (paychequeId: string, allocations: Record<string, Cents>): Allocation[] =>
-  Object.entries(allocations).filter(([, amount]) => amount > 0).map(([accountId, amount]) => ({ paychequeId, accountId, amount }));
+  Object.entries(allocations)
+    .filter(([, amount]) => amount > 0)
+    .map(([accountId, amount]) => ({ paychequeId, accountId, amount }));
 
 // ─── Budget ──────────────────────────────────────────────────────────────────
 
@@ -155,8 +169,7 @@ const byCategoryOrder = (categories: Category[]) => {
 };
 
 /** The most recent paycheque on record, including ones planned ahead of their pay date. */
-export const latestPaycheque = (paycheques: Paycheque[]) =>
-  [...paycheques].sort((a, b) => a.payDate.localeCompare(b.payDate)).at(-1);
+export const latestPaycheque = (paycheques: Paycheque[]) => [...paycheques].sort((a, b) => a.payDate.localeCompare(b.payDate)).at(-1);
 
 /** "Copy last plan": the latest paycheque's budget lines. */
 export function lastPlan(data: MoneoData): { categoryId: string; plan: Cents }[] {
@@ -179,10 +192,14 @@ export function lastSpent(data: MoneoData, today: ISODate): Record<string, Cents
 
 /** "3-paycheque average": average spend of the last `n` completed periods, rounded to the nearest $10. */
 export function averagePlan(data: MoneoData, today: ISODate, categoryIds: string[], n = 3) {
-  const done = pastPaycheques(data.paycheques, today).filter((p) => p.periodEnd < today).slice(-n);
+  const done = pastPaycheques(data.paycheques, today)
+    .filter((p) => p.periodEnd < today)
+    .slice(-n);
   return categoryIds.map((categoryId) => {
-    const spent = done.map((p) =>
-      spendByCategory(data.transactions, data.categories, p.periodStart, p.periodEnd).find((c) => c.category.id === categoryId)?.spent ?? 0,
+    const spent = done.map(
+      (p) =>
+        spendByCategory(data.transactions, data.categories, p.periodStart, p.periodEnd).find((c) => c.category.id === categoryId)?.spent ??
+        0,
     );
     const avg = done.length ? sum(spent) / done.length : 0;
     return { categoryId, plan: Math.round(avg / BUDGET_STEP) * BUDGET_STEP };
@@ -290,5 +307,11 @@ export function draftToRecords(d: PaychequeDraft, id = newId()): PaychequeRecord
 export function previousUnallocated(data: MoneoData, basedOn?: string) {
   const p = data.paycheques.find((x) => x.id === basedOn);
   if (!p) return undefined;
-  return { paycheque: p, left: leftToAllocate(p.net, allocationsFor(data.allocations, p.id).map((a) => a.amount)) };
+  return {
+    paycheque: p,
+    left: leftToAllocate(
+      p.net,
+      allocationsFor(data.allocations, p.id).map((a) => a.amount),
+    ),
+  };
 }
