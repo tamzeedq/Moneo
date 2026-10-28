@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { PeriodKind } from '@/domain/periods';
+import type { ISODate } from '@/domain/types';
 
 export type Theme = 'light' | 'dark';
-export type Period = 'Paycheque' | 'Week' | 'Month' | 'Quarter' | 'Year' | 'Custom';
+export type Period = PeriodKind;
 export const PERIODS: Period[] = ['Paycheque', 'Week', 'Month', 'Quarter', 'Year', 'Custom'];
 
 interface UIState {
@@ -14,6 +16,9 @@ interface UIState {
   setTheme: (t: Theme) => void;
   toggleTheme: () => void;
   setPeriod: (p: Period) => void;
+  /** Range for the Custom period (null = last 30 days). */
+  customRange: { start: ISODate; end: ISODate } | null;
+  setCustomRange: (r: { start: ISODate; end: ISODate } | null) => void;
 }
 
 const systemTheme = (): Theme =>
@@ -24,13 +29,15 @@ export const useUI = create<UIState>()(
     (set, get) => ({
       theme: systemTheme(),
       period: 'Paycheque',
-      name: 'Sam',
+      name: '',
       setName: (name) => set({ name }),
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set({ theme: get().theme === 'dark' ? 'light' : 'dark' }),
       setPeriod: (period) => set({ period }),
+      customRange: null,
+      setCustomRange: (customRange) => set({ customRange }),
     }),
-    { name: 'moneo-ui', partialize: (s) => ({ theme: s.theme, period: s.period, name: s.name }) },
+    { name: 'moneo-ui', partialize: (s) => ({ theme: s.theme, period: s.period, name: s.name, customRange: s.customRange }) },
   ),
 );
 

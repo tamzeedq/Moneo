@@ -13,12 +13,12 @@ import {
   recentTransactions,
   savingsRate,
   spendByCategory,
-  spendingPace,
   spentBetween,
   splitRows,
   trailingSavingsRate,
   allocationsFor,
 } from './selectors';
+import { spendingPace } from './periods';
 import type { Account, Allocation } from './types';
 
 const data = buildSeed();

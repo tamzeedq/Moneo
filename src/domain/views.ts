@@ -2,7 +2,8 @@
 import type { Account, Cents, ISODate, MoneoData, Paycheque } from './types';
 import { addDaysISO } from './dates';
 import { money, sum } from './money';
-import { allocationsFor, budgetWatch, leftToAllocate, periodInfo, snapshotsFor, spendingPace, spentBetween } from './selectors';
+import { allocationsFor, budgetWatch, leftToAllocate, periodInfo, snapshotsFor, spentBetween } from './selectors';
+import { spendingPace } from './periods';
 import type { Tone } from './wizard';
 
 // ─── Paycheques ──────────────────────────────────────────────────────────────

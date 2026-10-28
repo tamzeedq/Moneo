@@ -232,49 +232,6 @@ export function budgetWatch(lines: BudgetLine[], categories: Category[], txs: Tr
     .sort((a, b) => b.used - a.used);
 }
 
-export interface PaceSeries {
-  /** Cumulative spend at the start of each day 0..elapsed (index = day of period). */
-  actual: Cents[];
-  /** Average cumulative spend of previous periods, days 0..length. */
-  average: Cents[];
-  spent: Cents;
-  /** spent + what the average period still spends from today to the end. */
-  projected: Cents;
-  length: number;
-  elapsed: number;
-}
-
-function cumulative(txs: Transaction[], start: ISODate, days: number): Cents[] {
-  const daily = new Array<Cents>(days).fill(0);
-  for (const t of txs) {
-    if (!isSpend(t)) continue;
-    const d = daysBetween(start, t.date);
-    if (d >= 0 && d < days) daily[d] -= t.amount;
-  }
-  const out: Cents[] = [0];
-  for (const v of daily) out.push(out[out.length - 1] + v);
-  return out; // length days + 1; out[i] = spent before day i
-}
-
-/** Spending this period vs. the average of the previous `n` paycheque periods. */
-export function spendingPace(data: MoneoData, today: ISODate, n = 3): PaceSeries | undefined {
-  const past = pastPaycheques(data.paycheques, today);
-  const cur = past[past.length - 1];
-  if (!cur) return undefined;
-  const info = periodInfo(cur, today);
-  // Include today's spending in the latest point.
-  const actualFull = cumulative(data.transactions, cur.periodStart, info.length);
-  const actual = actualFull.slice(0, info.elapsed + 1);
-  actual[info.elapsed] = actualFull[Math.min(info.elapsed + 1, info.length)];
-  const prev = past.slice(-1 - n, -1);
-  const average = new Array<Cents>(info.length + 1).fill(0);
-  for (const p of prev) cumulative(data.transactions, p.periodStart, info.length).forEach((v, i) => (average[i] += v / prev.length));
-  const rounded = average.map(Math.round);
-  const spent = actual[actual.length - 1];
-  const projected = prev.length ? spent + rounded[info.length] - rounded[info.elapsed] : spent;
-  return { actual, average: rounded, spent, projected, length: info.length, elapsed: info.elapsed };
-}
-
 export function recentTransactions(txs: Transaction[], today: ISODate, n = 6): Transaction[] {
   return txs
     .filter((t) => t.date <= today)

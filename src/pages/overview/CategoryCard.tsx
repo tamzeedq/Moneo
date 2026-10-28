@@ -1,18 +1,19 @@
 import type { ISODate, MoneoData } from '@/domain/types';
 import { money, sum } from '@/domain/money';
-import { currentPaycheque, spendByCategory } from '@/domain/selectors';
+import { spendByCategory } from '@/domain/selectors';
+import { throughToday, type TimeWindow } from '@/domain/periods';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Swatch } from '@/components/ui/Avatar';
 import { HalfRing } from '@/components/charts/HalfRing';
 
-export function CategoryCard({ data, today }: { data: MoneoData; today: ISODate }) {
-  const pay = currentPaycheque(data.paycheques, today);
-  const cats = pay ? spendByCategory(data.transactions, data.categories, pay.periodStart, today) : [];
+export function CategoryCard({ data, today, window: w }: { data: MoneoData; today: ISODate; window?: TimeWindow }) {
+  const cats = w ? spendByCategory(data.transactions, data.categories, w.start, throughToday(w, today)) : [];
   const total = sum(cats.map((c) => c.spent));
 
   return (
     <Card className="flex flex-col gap-2.5">
       <CardHeader title="By category" meta={`${cats.length} categories`} />
+      {cats.length === 0 && <div className="text-[13px] text-mute">No spending in this period yet.</div>}
       <HalfRing
         segments={cats.map((c) => ({ value: c.spent, color: c.category.color }))}
         center={<span className="text-[17px] font-medium tracking-[-0.03em]">{money(total)}</span>}

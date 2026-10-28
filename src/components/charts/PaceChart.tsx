@@ -1,5 +1,5 @@
 import { useSvgId } from './useSvgId';
-import type { PaceSeries } from '@/domain/selectors';
+import type { PaceSeries } from '@/domain/periods';
 
 const W = 700,
   H = 230,
