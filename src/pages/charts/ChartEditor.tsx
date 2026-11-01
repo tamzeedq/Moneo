@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 import { useMoneoData } from '@/data/hooks';
@@ -6,8 +6,19 @@ import { repo } from '@/data/repository';
 import { today } from '@/domain/dates';
 import type { ChartDef, ChartMeasure, MoneoData } from '@/domain/types';
 import {
-  BUCKET_LABELS, chartCsv, computeChart, defaultsFor, formatValue, KIND_LABELS, MEASURES, QUESTIONS, rangeOptions,
-  seriesOf, seriesStats, SWATCHES, unitOf,
+  BUCKET_LABELS,
+  chartCsv,
+  computeChart,
+  defaultsFor,
+  formatValue,
+  KIND_LABELS,
+  MEASURES,
+  QUESTIONS,
+  rangeOptions,
+  seriesOf,
+  seriesStats,
+  SWATCHES,
+  unitOf,
 } from '@/domain/charts';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
@@ -19,21 +30,22 @@ import { MiniChart } from '@/components/charts/MiniChart';
 import { SeriesPlot } from '@/components/charts/SeriesPlot';
 import { btn, chip, field } from '@/components/ui/styles';
 import { toast } from '@/stores/toast';
-import { downloadFile, slug } from '@/components/download';
-import { toneVar } from './shared';
+import { downloadFile, slug } from '@/lib/download';
+import { toneColor } from '@/components/ui/tone';
 
 const inputCls = `${field} py-[9px]! text-[13px]!`;
 
-/** Loads a chart into local state and writes every change straight back ("autosaved"). */
+/**
+ * The chart being edited, and an updater that writes every change straight back ("autosaved").
+ * Local edits win over the stored copy until the save round-trips, so typing never flickers.
+ */
 function useChartDraft(data: MoneoData | undefined, id: string | undefined) {
-  const [def, setDef] = useState<ChartDef | null>(null);
-  useEffect(() => {
-    if (data && id && def?.id !== id) setDef(data.charts.find((c) => c.id === id) ?? null);
-  }, [data, id, def?.id]);
+  const [local, setLocal] = useState<ChartDef | null>(null);
+  const def = local?.id === id ? local : (data?.charts.find((c) => c.id === id) ?? null);
   const update = (patch: Partial<ChartDef>) => {
     if (!def) return;
     const next = { ...def, ...patch, editedAt: today() };
-    setDef(next);
+    setLocal(next);
     void repo.saveChart(next);
   };
   return [def, update] as const;
@@ -50,7 +62,10 @@ export function ChartEditor() {
       <>
         <PageHeader crumb="Chart Studio" title="Chart not found" actions={<ThemeToggle />} />
         <Card className="text-[13px] text-mute">
-          This chart doesn’t exist any more. <Link to="/charts" className="text-acc">Back to Chart Studio →</Link>
+          This chart doesn’t exist any more.{' '}
+          <Link to="/charts" className="text-acc">
+            Back to Chart Studio →
+          </Link>
         </Card>
       </>
     );
@@ -69,7 +84,13 @@ export function ChartEditor() {
   const setMeasure = (measure: ChartMeasure) => {
     const isDefaultTitle = QUESTIONS.some((q) => q.def.title === def.title) || def.title === 'Untitled chart';
     const q = QUESTIONS.find((x) => x.def.measure === measure)!;
-    update({ ...defaultsFor(measure), measure, color: def.color, notes: def.notes, ...(isDefaultTitle ? { title: q.def.title, question: q.question } : {}) });
+    update({
+      ...defaultsFor(measure),
+      measure,
+      color: def.color,
+      notes: def.notes,
+      ...(isDefaultTitle ? { title: q.def.title, question: q.question } : {}),
+    });
   };
 
   const exportCsv = () => downloadFile(`${slug(def.title)}.csv`, chartCsv(def, result), 'text/csv');
@@ -253,7 +274,7 @@ export function ChartEditor() {
                 <div key={s.label} className={`px-3.5 ${i ? 'border-l border-line' : ''}`}>
                   <div className="text-[12px] text-mute">{s.label}</div>
                   <div className="mt-[3px] text-[20px] font-medium tracking-[-0.03em]">{s.value}</div>
-                  <div className="mt-px text-[11px]" style={{ color: toneVar[s.tone] }}>
+                  <div className="mt-px text-[11px]" style={{ color: toneColor[s.tone] }}>
                     {s.sub}
                   </div>
                 </div>
@@ -299,7 +320,13 @@ export function ChartEditor() {
               </div>
             </Field>
           )}
-          {isSeries && <TargetField def={def} unit={unit} onChange={(target) => update({ target, showTarget: target !== undefined && def.showTarget })} />}
+          {isSeries && (
+            <TargetField
+              def={def}
+              unit={unit}
+              onChange={(target) => update({ target, showTarget: target !== undefined && def.showTarget })}
+            />
+          )}
           {isSeries && <Notes def={def} points={points} onChange={(notes) => update({ notes })} />}
           <button type="button" onClick={remove} className="self-start text-[12px] text-mute hover:text-acc">
             Delete chart
@@ -353,7 +380,15 @@ function TargetField({ def, unit, onChange }: { def: ChartDef; unit: 'percent' |
   );
 }
 
-function Notes({ def, points, onChange }: { def: ChartDef; points: ReturnType<typeof seriesOf>; onChange: (n: ChartDef['notes']) => void }) {
+function Notes({
+  def,
+  points,
+  onChange,
+}: {
+  def: ChartDef;
+  points: ReturnType<typeof seriesOf>;
+  onChange: (n: ChartDef['notes']) => void;
+}) {
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState('');
   const [date, setDate] = useState(points.at(-1)?.date ?? '');
@@ -366,7 +401,8 @@ function Notes({ def, points, onChange }: { def: ChartDef; points: ReturnType<ty
         <div key={n.date + n.label} className="group flex justify-between gap-2 text-[12px]">
           <span className="truncate">{n.label}</span>
           <span className="flex flex-none items-center gap-1.5 text-mute">
-            {points.find((p) => p.date === n.date)?.label ?? new Date(n.date + 'T00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
+            {points.find((p) => p.date === n.date)?.label ??
+              new Date(n.date + 'T00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}
             <button
               type="button"
               aria-label={`Remove note ${n.label}`}

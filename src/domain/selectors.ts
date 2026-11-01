@@ -63,8 +63,7 @@ export function periodInfo(p: Paycheque, today: ISODate): PeriodInfo {
 
 // ─── Allocation maths ────────────────────────────────────────────────────────
 
-export const allocationsFor = (allocations: Allocation[], paychequeId: string) =>
-  allocations.filter((a) => a.paychequeId === paychequeId);
+export const allocationsFor = (allocations: Allocation[], paychequeId: string) => allocations.filter((a) => a.paychequeId === paychequeId);
 
 /** Net minus everything allocated. Exactly 0 when every dollar has a job; negative when over. */
 export function leftToAllocate(net: Cents, amounts: readonly Cents[]): Cents {
@@ -138,7 +137,10 @@ export function splitRows(p: Paycheque, allocations: Allocation[], accounts: Acc
       share: 0,
     }))
     .filter((r) => r.amount > 0);
-  const left = leftToAllocate(p.net, rows.map((r) => r.amount));
+  const left = leftToAllocate(
+    p.net,
+    rows.map((r) => r.amount),
+  );
   if (left > 0) rows.push({ accountId: null, name: 'Unallocated', color: 'var(--faint)', amount: left, share: 0 });
   return rows.map((r) => ({ ...r, share: r.amount / p.net }));
 }
@@ -218,15 +220,8 @@ export interface BudgetWatchRow {
 }
 
 /** Budget lines for a paycheque with spend to date, most-used first. */
-export function budgetWatch(
-  lines: BudgetLine[],
-  categories: Category[],
-  txs: Transaction[],
-  paycheque: Paycheque,
-): BudgetWatchRow[] {
-  const spend = new Map(
-    spendByCategory(txs, categories, paycheque.periodStart, paycheque.periodEnd).map((c) => [c.category.id, c.spent]),
-  );
+export function budgetWatch(lines: BudgetLine[], categories: Category[], txs: Transaction[], paycheque: Paycheque): BudgetWatchRow[] {
+  const spend = new Map(spendByCategory(txs, categories, paycheque.periodStart, paycheque.periodEnd).map((c) => [c.category.id, c.spent]));
   const cats = new Map(categories.map((c) => [c.id, c]));
   return lines
     .filter((l) => l.paychequeId === paycheque.id && cats.has(l.categoryId))
@@ -235,49 +230,6 @@ export function budgetWatch(
       return { category: cats.get(l.categoryId)!, plan: l.plan, spent, used: l.plan ? spent / l.plan : 0, remaining: l.plan - spent };
     })
     .sort((a, b) => b.used - a.used);
-}
-
-export interface PaceSeries {
-  /** Cumulative spend at the start of each day 0..elapsed (index = day of period). */
-  actual: Cents[];
-  /** Average cumulative spend of previous periods, days 0..length. */
-  average: Cents[];
-  spent: Cents;
-  /** spent + what the average period still spends from today to the end. */
-  projected: Cents;
-  length: number;
-  elapsed: number;
-}
-
-function cumulative(txs: Transaction[], start: ISODate, days: number): Cents[] {
-  const daily = new Array<Cents>(days).fill(0);
-  for (const t of txs) {
-    if (!isSpend(t)) continue;
-    const d = daysBetween(start, t.date);
-    if (d >= 0 && d < days) daily[d] -= t.amount;
-  }
-  const out: Cents[] = [0];
-  for (const v of daily) out.push(out[out.length - 1] + v);
-  return out; // length days + 1; out[i] = spent before day i
-}
-
-/** Spending this period vs. the average of the previous `n` paycheque periods. */
-export function spendingPace(data: MoneoData, today: ISODate, n = 3): PaceSeries | undefined {
-  const past = pastPaycheques(data.paycheques, today);
-  const cur = past[past.length - 1];
-  if (!cur) return undefined;
-  const info = periodInfo(cur, today);
-  // Include today's spending in the latest point.
-  const actualFull = cumulative(data.transactions, cur.periodStart, info.length);
-  const actual = actualFull.slice(0, info.elapsed + 1);
-  actual[info.elapsed] = actualFull[Math.min(info.elapsed + 1, info.length)];
-  const prev = past.slice(-1 - n, -1);
-  const average = new Array<Cents>(info.length + 1).fill(0);
-  for (const p of prev) cumulative(data.transactions, p.periodStart, info.length).forEach((v, i) => (average[i] += v / prev.length));
-  const rounded = average.map(Math.round);
-  const spent = actual[actual.length - 1];
-  const projected = prev.length ? spent + rounded[info.length] - rounded[info.elapsed] : spent;
-  return { actual, average: rounded, spent, projected, length: info.length, elapsed: info.elapsed };
 }
 
 export function recentTransactions(txs: Transaction[], today: ISODate, n = 6): Transaction[] {

@@ -1,7 +1,5 @@
 import { buildSeed, SEED_TODAY } from '@/data/seed';
-import {
-  chartCsv, computeChart, headline, placeNotes, placementLabel, rangeOptions, seriesOf, seriesStats, xTicks,
-} from './charts';
+import { chartCsv, computeChart, headline, placeNotes, placementLabel, rangeOptions, seriesOf, seriesStats, xTicks } from './charts';
 import type { ChartDef } from './types';
 
 const data = buildSeed();

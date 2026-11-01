@@ -5,17 +5,27 @@ import { shortDate, today } from '@/domain/dates';
 import { repo } from '@/data/repository';
 import { btn, field } from '@/components/ui/styles';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 /** Saves a split as a reusable template ("Start the split from" in the wizard, chips on Paycheques). */
 export function SaveTemplateDialog({
-  data, amounts, from, triggerClassName = btn.secondary + ' py-2.5', triggerLabel = 'Save as template',
-}: { data: MoneoData; amounts: Record<string, Cents>; from: string; triggerClassName?: string; triggerLabel?: string }) {
+  data,
+  amounts,
+  from,
+  triggerClassName = btn.secondary + ' py-2.5',
+  triggerLabel = 'Save as template',
+}: {
+  data: MoneoData;
+  amounts: Record<string, Cents>;
+  from: string;
+  triggerClassName?: string;
+  triggerLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const save = async () => {
-    const id = 't-' + Date.now().toString(36);
     await repo.saveTemplate({
-      id,
+      id: newId(),
       name: name.trim(),
       description: `Saved ${shortDate(today())} from ${from}`,
       amounts: { ...amounts },
@@ -36,7 +46,9 @@ export function SaveTemplateDialog({
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30" />
         <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[380px] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-[18px] border border-line bg-panel p-[22px] text-ink">
           <Dialog.Title className="m-0 text-[16px] font-semibold">Save split as a template</Dialog.Title>
-          <Dialog.Description className="m-0 text-[13px] text-mute">It will appear under “Start the split from” next time.</Dialog.Description>
+          <Dialog.Description className="m-0 text-[13px] text-mute">
+            It will appear under “Start the split from” next time.
+          </Dialog.Description>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {

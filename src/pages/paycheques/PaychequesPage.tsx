@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMoneoData } from '@/data/hooks';
 import { repo } from '@/data/repository';
 import type { Cents, MoneoData, Paycheque } from '@/domain/types';
 import { money } from '@/domain/money';
 import { dayShortDate, shortDate, today } from '@/domain/dates';
-import { splitAccounts, splitStatus, SPLIT_STEP, templateAllocations } from '@/domain/wizard';
+import { expectedPaycheques, splitAccounts, splitStatus, SPLIT_STEP, templateAllocations } from '@/domain/wizard';
 import { allocationMap, byPayDateDesc, paychequeHistory, sameAllocations } from '@/domain/views';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
@@ -17,7 +17,7 @@ import { Swatch } from '@/components/ui/Avatar';
 import { btn, chip } from '@/components/ui/styles';
 import { SaveTemplateDialog } from '@/components/SaveTemplateDialog';
 import { AllocationBar } from '@/pages/wizard/AllocationBar';
-import { toneColor } from '@/pages/wizard/WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 import { PinnedRow } from '@/pages/overview/PinnedCharts';
 import { toast } from '@/stores/toast';
 
@@ -28,6 +28,7 @@ export function PaychequesPage() {
   if (!data) return null;
 
   const list = byPayDateDesc(data.paycheques);
+  const due = expectedPaycheques(data.paycheques, now).due;
   const selected = list.find((p) => p.id === params.get('id')) ?? list[0];
   const select = (p: Paycheque) => setParams({ id: p.id }, { replace: true });
   const i = selected ? list.indexOf(selected) : -1;
@@ -52,34 +53,52 @@ export function PaychequesPage() {
           </>
         }
       />
+      {due.length > 0 && (
+        <Card className="flex items-center justify-between gap-4 py-3.5! text-[13px]">
+          <span>
+            <span className="font-medium">
+              {due.length === 1 ? `Your ${shortDate(due[0])} paycheque` : `${due.length} paycheques since ${shortDate(due[0])}`}
+            </span>{' '}
+            <span className="text-mute">{due.length === 1 ? 'is due and not added yet.' : 'are due and not added yet.'}</span>
+          </span>
+          <Link to="/paycheques/new/details" className={`${btn.accent} px-3.5! py-2!`}>
+            Add {shortDate(due[0])} →
+          </Link>
+        </Card>
+      )}
       {selected ? (
         <Allocate key={selected.id} data={data} paycheque={selected} today={now} onSelect={select} />
       ) : (
         <Card className="flex items-center justify-between text-[13px] text-mute">
           No paycheques yet.
-          <Link to="/paycheques/new/details" className={btn.primary}>Add your first paycheque</Link>
+          <Link to="/paycheques/new/details" className={btn.primary}>
+            Add your first paycheque
+          </Link>
         </Card>
       )}
     </>
   );
 }
 
-function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; paycheque: Paycheque; today: string; onSelect: (p: Paycheque) => void }) {
+function Allocate({
+  data,
+  paycheque: p,
+  today,
+  onSelect,
+}: {
+  data: MoneoData;
+  paycheque: Paycheque;
+  today: string;
+  onSelect: (p: Paycheque) => void;
+}) {
   const saved = allocationMap(data, p.id);
-  const [amounts, setAmounts] = useState<Record<string, Cents>>(saved);
-  // Pick up external changes (e.g. after saving) while there are no local edits.
-  const savedKey = JSON.stringify(saved);
-  const [base, setBase] = useState(savedKey);
-  useEffect(() => {
-    if (savedKey !== base) {
-      setBase(savedKey);
-      setAmounts(JSON.parse(savedKey));
-    }
-  }, [savedKey, base]);
+  // Unsaved edits over the stored split; null means "showing what's saved".
+  const [edits, setAmounts] = useState<Record<string, Cents> | null>(null);
+  const amounts = edits ?? saved;
 
   const accounts = splitAccounts(data.accounts);
   const status = splitStatus(p.net, amounts);
-  const dirty = !sameAllocations(amounts, saved);
+  const dirty = edits !== null && !sameAllocations(edits, saved);
   const upcoming = p.payDate > today;
   const templates = [...data.templates].sort((a, b) => a.order - b.order).filter((t) => t.id !== 'blank');
   const goals = new Map(data.goals.filter((g) => g.accountId && g.kind !== 'room').map((g) => [g.accountId!, g]));
@@ -89,6 +108,7 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
 
   const save = async () => {
     await repo.setAllocations(p.id, amounts);
+    setAmounts(null);
     toast(`Allocation saved · ${shortDate(p.payDate)} paycheque`);
   };
 
@@ -164,7 +184,10 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
                 ? `${goalPct(a.balance)}% → ${goalPct(a.balance + amt)}% of ${money(g.target, { decimals: 0 })} goal`
                 : `${goalPct(a.balance)}% of ${money(g.target, { decimals: 0 })} goal`;
             return (
-              <div key={a.id} className="grid grid-cols-[minmax(0,1fr)_100px_16px_110px_132px] items-center gap-3 border-b border-line px-1 py-2.5 text-[13px]">
+              <div
+                key={a.id}
+                className="grid grid-cols-[minmax(0,1fr)_100px_16px_110px_132px] items-center gap-3 border-b border-line px-1 py-2.5 text-[13px]"
+              >
                 <div className="flex min-w-0 items-center gap-2.5">
                   <Swatch color={a.color} size={10} />
                   <div className="min-w-0">
@@ -175,13 +198,22 @@ function Allocate({ data, paycheque: p, today, onSelect }: { data: MoneoData; pa
                 <span className="text-right text-mute">{upcoming ? money(a.balance) : ''}</span>
                 <span className="text-faint">{upcoming ? '→' : ''}</span>
                 <span className="text-right font-medium">{upcoming ? money(a.balance + amt) : `${pct(amt)}%`}</span>
-                <Stepper value={amt} step={SPLIT_STEP} label={`${a.shortName ?? a.name} amount`} onChange={(v) => setAmounts({ ...amounts, [a.id]: v })} />
+                <Stepper
+                  value={amt}
+                  step={SPLIT_STEP}
+                  label={`${a.shortName ?? a.name} amount`}
+                  onChange={(v) => setAmounts({ ...amounts, [a.id]: v })}
+                />
               </div>
             );
           })}
           <div className="flex items-center justify-end gap-2.5 pt-3.5">
-            {dirty && <span className="mr-auto text-[12px]" style={{ color: toneColor[status.tone] }}>{status.label}</span>}
-            <button type="button" className={btn.secondary} disabled={!dirty} onClick={() => setAmounts(saved)}>
+            {dirty && (
+              <span className="mr-auto text-[12px]" style={{ color: toneColor[status.tone] }}>
+                {status.label}
+              </span>
+            )}
+            <button type="button" className={btn.secondary} disabled={!dirty} onClick={() => setAmounts(null)}>
               Cancel
             </button>
             <button type="button" className={btn.accent} disabled={!dirty || !status.canContinue} onClick={save}>

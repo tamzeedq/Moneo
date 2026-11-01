@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMoneoData } from '@/data/hooks';
 import { repo } from '@/data/repository';
 import { today } from '@/domain/dates';
@@ -12,39 +12,54 @@ import { Swatch } from '@/components/ui/Avatar';
 import { field } from '@/components/ui/styles';
 import { useDialogs } from '@/stores/ui';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 const NONE = 'none';
 
 /** "+ Transaction": add one transaction by hand. Opened from the Overview quick action or ⌘K. */
 export function TransactionDialog() {
+  const open = useDialogs((s) => s.transaction);
+  // Mounted only while open, so every visit starts with a blank form.
+  return open ? <TransactionForm /> : null;
+}
+
+function TransactionForm() {
   const data = useMoneoData();
-  const { transaction: open, close } = useDialogs();
+  const close = useDialogs((s) => s.close);
   const [direction, setDirection] = useState<'out' | 'in'>('out');
   const [amountText, setAmountText] = useState('');
   const [merchant, setMerchant] = useState('');
   const [categoryId, setCategoryId] = useState<string>(NONE);
   const [categoryTouched, setCategoryTouched] = useState(false);
-  const [accountId, setAccountId] = useState('spending');
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [date, setDate] = useState(today());
   const [adjust, setAdjust] = useState(true);
 
-  useEffect(() => {
-    if (!open) return;
-    setDirection('out');
-    setAmountText('');
-    setMerchant('');
-    setCategoryId(NONE);
-    setCategoryTouched(false);
-    setDate(today());
-    setAdjust(true);
-  }, [open]);
-
   const history = useMemo(() => merchantHistory(data?.transactions ?? []), [data?.transactions]);
-  const merchants = useMemo(() => [...new Set((data?.transactions ?? []).filter((t) => t.amount < 0).map((t) => t.merchant))].sort(), [data?.transactions]);
+  const merchants = useMemo(
+    () => [...new Set((data?.transactions ?? []).filter((t) => t.amount < 0).map((t) => t.merchant))].sort(),
+    [data?.transactions],
+  );
   if (!data) return null;
 
   const accounts = [...data.accounts].sort((a, b) => a.order - b.order);
-  const account = accounts.find((a) => a.id === accountId) ?? accounts[0];
+  if (!accounts.length) {
+    return (
+      <ModalForm
+        open
+        onOpenChange={(o) => !o && close('transaction')}
+        title="Add an account first"
+        description="Transactions belong to an account. Set up your accounts from the Overview, then come back."
+        submitLabel="OK"
+        canSubmit
+        onSubmit={() => close('transaction')}
+      >
+        <span />
+      </ModalForm>
+    );
+  }
+  // Default to the day-to-day account when there is one.
+  const account = accounts.find((a) => a.id === accountId) ?? accounts.find((a) => a.kind === 'spending') ?? accounts[0];
   const amount = parseAmount(amountText);
   const signed = amount === null ? null : (direction === 'out' ? -1 : 1) * Math.abs(amount);
   const valid = signed !== null && signed !== 0 && merchant.trim() !== '' && !!date && !!account;
@@ -60,7 +75,16 @@ export function TransactionDialog() {
   const save = async () => {
     if (!valid) return;
     await repo.addTransactions(
-      [{ id: 'm-' + Date.now().toString(36), date, merchant: merchant.trim(), amount: signed!, accountId: account.id, categoryId: direction === 'out' && categoryId !== NONE ? categoryId : undefined }],
+      [
+        {
+          id: newId(),
+          date,
+          merchant: merchant.trim(),
+          amount: signed!,
+          accountId: account.id,
+          categoryId: direction === 'out' && categoryId !== NONE ? categoryId : undefined,
+        },
+      ],
       { adjustBalances: adjust, date: today() },
     );
     toast(`Added ${merchant.trim()} · ${money(signed!, { signed: true })}`);
@@ -69,7 +93,7 @@ export function TransactionDialog() {
 
   return (
     <ModalForm
-      open={open}
+      open
       onOpenChange={(o) => !o && close('transaction')}
       title="Add transaction"
       description="For spending the bank feed doesn’t cover yet. Import a CSV for many at once."
@@ -106,7 +130,14 @@ export function TransactionDialog() {
         </div>
       </Field>
       <Field label="Merchant" htmlFor="tx-merchant">
-        <input id="tx-merchant" list="tx-merchants" className={field} placeholder="e.g. Loblaws" value={merchant} onChange={(e) => onMerchant(e.target.value)} />
+        <input
+          id="tx-merchant"
+          list="tx-merchants"
+          className={field}
+          placeholder="e.g. Loblaws"
+          value={merchant}
+          onChange={(e) => onMerchant(e.target.value)}
+        />
         <datalist id="tx-merchants">
           {merchants.map((m) => (
             <option key={m} value={m} />
@@ -125,15 +156,17 @@ export function TransactionDialog() {
               }}
               options={[
                 { value: NONE, label: <span className="text-mute">Uncategorised</span> },
-                ...[...data.categories].sort((a, b) => a.order - b.order).map((c) => ({
-                  value: c.id,
-                  label: (
-                    <span className="flex items-center gap-2">
-                      <Swatch color={c.color} round />
-                      {c.name}
-                    </span>
-                  ),
-                })),
+                ...[...data.categories]
+                  .sort((a, b) => a.order - b.order)
+                  .map((c) => ({
+                    value: c.id,
+                    label: (
+                      <span className="flex items-center gap-2">
+                        <Swatch color={c.color} round />
+                        {c.name}
+                      </span>
+                    ),
+                  })),
               ]}
             />
           </Field>

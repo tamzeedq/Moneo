@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import type { Cents, MoneoData, Repeats } from '@/domain/types';
 import { money, moneyParts, sum } from '@/domain/money';
 import { parse, shortDate, today } from '@/domain/dates';
 import {
-  payPeriod, periodLabel, sameAmountCount, splitAccounts, templateAllocations, validateDraft, type PaychequeDraft,
+  payPeriod,
+  periodLabel,
+  sameAmountCount,
+  splitAccounts,
+  templateAllocations,
+  validateDraft,
+  type PaychequeDraft,
 } from '@/domain/wizard';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Field } from '@/components/ui/Field';
@@ -96,7 +102,9 @@ export function DetailsStep({ data, draft }: { data: MoneoData; draft: Paycheque
                 />
               </Field>
               <Field label="Pay period">
-                <div className="rounded-[10px] border border-line bg-bg px-3 py-2.5 text-[14px]">{periodLabel(period.start, period.end)}</div>
+                <div className="rounded-[10px] border border-line bg-bg px-3 py-2.5 text-[14px]">
+                  {periodLabel(period.start, period.end)}
+                </div>
               </Field>
               <Field label="Repeats" className="col-span-2 max-md:col-span-1">
                 <div role="radiogroup" aria-label="Repeats" className="flex flex-wrap gap-1.5 text-[13px] whitespace-nowrap">
@@ -170,11 +178,9 @@ const toRaw = (c: Cents) => (c ? (c / 100).toFixed(2).replace(/\.00$/, '') : '')
 
 /** 40px money input with faint cents. A transparent input on top captures typing; the caret sits at the end. */
 function NetInput({ id, value, onChange, hint }: { id: string; value: Cents; onChange: (c: Cents) => void; hint: string }) {
-  const [raw, setRaw] = useState(() => toRaw(value));
-  const [focused, setFocused] = useState(false);
-  useEffect(() => {
-    if (!focused) setRaw(toRaw(value));
-  }, [value, focused]);
+  // What's being typed while focused; otherwise the input mirrors the stored value.
+  const [raw, setRaw] = useState<string | null>(null);
+  const focused = raw !== null;
   const { whole, cents } = moneyParts(value);
   return (
     <div className="relative flex items-baseline justify-between gap-3 rounded-[12px] border-[1.5px] border-acc bg-bg px-4 py-3">
@@ -190,9 +196,9 @@ function NetInput({ id, value, onChange, hint }: { id: string; value: Cents; onC
         inputMode="decimal"
         autoComplete="off"
         className="absolute inset-0 cursor-text opacity-0"
-        value={raw}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        value={raw ?? toRaw(value)}
+        onFocus={() => setRaw(toRaw(value))}
+        onBlur={() => setRaw(null)}
         onChange={(e) => {
           const v = e.target.value.replace(/[$,\s]/g, '');
           if (!/^\d{0,7}(\.\d{0,2})?$/.test(v)) return;
@@ -225,7 +231,17 @@ function DateField({ id, value, onChange }: { id: string; value: string; onChang
 
 const DEDUCTION_COLORS = ['var(--acc)', '#d8b67a', '#8fae8f', '#7f95ab', '#a88aa6', '#c99a8e'];
 
-function AmountInput({ value, onChange, label, negative }: { value: Cents | null; onChange: (c: Cents | null) => void; label: string; negative?: boolean }) {
+function AmountInput({
+  value,
+  onChange,
+  label,
+  negative,
+}: {
+  value: Cents | null;
+  onChange: (c: Cents | null) => void;
+  label: string;
+  negative?: boolean;
+}) {
   const [text, setText] = useState<string | null>(null);
   return (
     <input
@@ -273,9 +289,7 @@ function GrossToNet({ draft }: { draft: PaychequeDraft }) {
         <Row color="var(--inv)" label="Net deposit" bold>
           <span className="px-1">{net === null ? '—' : money(net)}</span>
         </Row>
-        {mismatch && (
-          <div className="pt-1 text-[11px] text-acc">Doesn’t match the net deposit of {money(draft.net)}</div>
-        )}
+        {mismatch && <div className="pt-1 text-[11px] text-acc">Doesn’t match the net deposit of {money(draft.net)}</div>}
       </div>
       {gross ? (
         <div className="flex flex-col gap-2.5">
@@ -336,7 +350,9 @@ function Templates({ data, draft }: { data: MoneoData; draft: PaychequeDraft }) 
               onClick={() => update({ templateId: t.id, allocations: templateAllocations(t, data.accounts) })}
               className={`flex items-start gap-2.5 rounded-[12px] border px-3 py-[11px] text-left ${on ? 'border-acc bg-panel2' : 'border-line hover:border-faint'}`}
             >
-              <span className={`mt-0.5 grid size-3.5 flex-none place-items-center rounded-full border-[1.5px] ${on ? 'border-acc' : 'border-faint'}`}>
+              <span
+                className={`mt-0.5 grid size-3.5 flex-none place-items-center rounded-full border-[1.5px] ${on ? 'border-acc' : 'border-faint'}`}
+              >
                 <span className={`size-1.5 rounded-full ${on ? 'bg-acc' : ''}`} />
               </span>
               <span className="min-w-0 flex-1">
@@ -363,7 +379,10 @@ function RecentPaycheques({ data, draft }: { data: MoneoData; draft: PaychequeDr
     .filter((p) => p.payDate < draft.payDate)
     .sort((a, b) => a.payDate.localeCompare(b.payDate))
     .slice(-6);
-  const bars = [...past.map((p) => ({ date: p.payDate, net: p.net, current: false })), { date: draft.payDate, net: draft.net, current: true }];
+  const bars = [
+    ...past.map((p) => ({ date: p.payDate, net: p.net, current: false })),
+    { date: draft.payDate, net: draft.net, current: true },
+  ];
   const max = Math.max(...bars.map((b) => b.net), 1);
   const avg = sum(bars.map((b) => b.net)) / bars.length;
   const noted = [...past].reverse().find((p) => p.note);

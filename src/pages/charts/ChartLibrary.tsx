@@ -7,7 +7,9 @@ import { PageHeader } from '@/components/shell/PageHeader';
 import { ThemeToggle } from '@/components/shell/ThemeToggle';
 import { MiniChart } from '@/components/charts/MiniChart';
 import { btn, chip } from '@/components/ui/styles';
-import { chartSub, QuestionList, StatusBadge, toneVar } from './shared';
+import { QuestionList, StatusBadge } from './shared';
+import { chartSub } from './chartSub';
+import { toneColor } from '@/components/ui/tone';
 
 type Filter = 'all' | 'pinned' | 'drafts' | Topic;
 const TOPICS: Topic[] = ['Spending', 'Saving', 'Accounts'];
@@ -17,7 +19,10 @@ export function ChartLibrary() {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const now = today();
-  const charts = useMemo(() => [...(data?.charts ?? [])].sort((a, b) => b.editedAt.localeCompare(a.editedAt) || a.title.localeCompare(b.title)), [data]);
+  const charts = useMemo(
+    () => [...(data?.charts ?? [])].sort((a, b) => b.editedAt.localeCompare(a.editedAt) || a.title.localeCompare(b.title)),
+    [data],
+  );
   if (!data) return null;
 
   const pinned = charts.filter((c) => c.status === 'pinned').length;
@@ -63,9 +68,15 @@ export function ChartLibrary() {
       ) : (
         <>
           <div className="flex flex-wrap gap-1.5" role="toolbar" aria-label="Filter charts">
-            <button type="button" className={chip(filter === 'all')} onClick={() => setFilter('all')}>All {charts.length}</button>
-            <button type="button" className={chip(filter === 'pinned')} onClick={() => setFilter('pinned')}>Pinned {pinned}</button>
-            <button type="button" className={chip(filter === 'drafts')} onClick={() => setFilter('drafts')}>Drafts {drafts}</button>
+            <button type="button" className={chip(filter === 'all')} onClick={() => setFilter('all')}>
+              All {charts.length}
+            </button>
+            <button type="button" className={chip(filter === 'pinned')} onClick={() => setFilter('pinned')}>
+              Pinned {pinned}
+            </button>
+            <button type="button" className={chip(filter === 'drafts')} onClick={() => setFilter('drafts')}>
+              Drafts {drafts}
+            </button>
             {TOPICS.map((t) => (
               <button key={t} type="button" className={chip(filter === t, true)} onClick={() => setFilter(t)}>
                 {t}
@@ -92,7 +103,7 @@ export function ChartLibrary() {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-[22px] font-medium tracking-[-0.035em]">{h.big}</span>
-                    <span className="truncate text-[12px]" style={{ color: toneVar[h.tone] }}>
+                    <span className="truncate text-[12px]" style={{ color: toneColor[h.tone] }}>
                       {h.delta}
                     </span>
                   </div>
@@ -108,7 +119,9 @@ export function ChartLibrary() {
           </div>
 
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3.5 rounded-[16px] border border-dashed border-faint px-[18px] py-3.5 text-[13px]">
-            <span className="text-mute">Start from a question instead of a blank chart: “Am I saving more?”, “Am I sticking to plan?”…</span>
+            <span className="text-mute">
+              Start from a question instead of a blank chart: “Am I saving more?”, “Am I sticking to plan?”…
+            </span>
             <Link to="/charts/new" className="rounded-[10px] border border-line bg-panel px-3.5 py-2 hover:border-faint">
               Browse templates
             </Link>

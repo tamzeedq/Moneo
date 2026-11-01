@@ -31,11 +31,39 @@ const CURRENT_PAY_DATE = '2025-09-26';
 // ─── Accounts ────────────────────────────────────────────────────────────────
 
 const accounts: Account[] = [
-  { id: 'chequing', name: 'Chequing', purpose: 'Bills & fixed costs', kind: 'chequing', color: 'var(--inv)', balance: 341210, order: 0, splitOrder: 0 },
+  {
+    id: 'chequing',
+    name: 'Chequing',
+    purpose: 'Bills & fixed costs',
+    kind: 'chequing',
+    color: 'var(--inv)',
+    balance: 341210,
+    order: 0,
+    splitOrder: 0,
+  },
   { id: 'tfsa', name: 'TFSA', purpose: 'Investing', kind: 'tfsa', color: 'var(--acc)', balance: 2324055, order: 1, splitOrder: 1 },
-  { id: 'emergency', name: 'Emergency fund', shortName: 'Emergency', purpose: 'Savings goal', kind: 'emergency', color: '#8fae8f', balance: 842000, order: 2, splitOrder: 3 },
+  {
+    id: 'emergency',
+    name: 'Emergency fund',
+    shortName: 'Emergency',
+    purpose: 'Savings goal',
+    kind: 'emergency',
+    color: '#8fae8f',
+    balance: 842000,
+    order: 2,
+    splitOrder: 3,
+  },
   { id: 'rrsp', name: 'RRSP', purpose: 'Retirement', kind: 'rrsp', color: '#7f95ab', balance: 1410280, order: 3, splitOrder: 4 },
-  { id: 'spending', name: 'Spending', purpose: 'Day-to-day spending', kind: 'spending', color: '#d8b67a', balance: 48620, order: 4, splitOrder: 2 },
+  {
+    id: 'spending',
+    name: 'Spending',
+    purpose: 'Day-to-day spending',
+    kind: 'spending',
+    color: '#d8b67a',
+    balance: 48620,
+    order: 4,
+    splitOrder: 2,
+  },
   { id: 'visa', name: 'Visa', purpose: 'Credit card', kind: 'credit', color: '#a8a29a', balance: -144525, order: 5 },
 ];
 
@@ -63,19 +91,48 @@ const categories: Category[] = [
 ];
 
 const currentPlan: Record<string, number> = {
-  housing: 650, groceries: 450, dining: 180, transport: 200, utilities: 160, shopping: 150, health: 120, subscriptions: 60,
+  housing: 650,
+  groceries: 450,
+  dining: 180,
+  transport: 200,
+  utilities: 160,
+  shopping: 150,
+  health: 120,
+  subscriptions: 60,
 };
 
 // ─── Templates ───────────────────────────────────────────────────────────────
 
 const tpl = (c: number, t: number, s: number, e: number, r: number) => ({
-  chequing: toCents(c), tfsa: toCents(t), spending: toCents(s), emergency: toCents(e), rrsp: toCents(r),
+  chequing: toCents(c),
+  tfsa: toCents(t),
+  spending: toCents(s),
+  emergency: toCents(e),
+  rrsp: toCents(r),
 });
 
 const templates: SplitTemplate[] = [
-  { id: 'standard', name: 'Standard bi-weekly', description: 'Bills first, 22% to TFSA, rest to spending', amounts: tpl(1100, 580, 520, 120, 320), order: 0 },
-  { id: 'aggressive', name: 'Aggressive savings', description: 'Moves $400 from Spending to TFSA', amounts: tpl(1100, 980, 120, 120, 320), order: 1 },
-  { id: 'holiday', name: 'Holiday month', description: 'Extra $300 to Spending, RRSP paused', amounts: tpl(1100, 580, 820, 140, 0), order: 2 },
+  {
+    id: 'standard',
+    name: 'Standard bi-weekly',
+    description: 'Bills first, 22% to TFSA, rest to spending',
+    amounts: tpl(1100, 580, 520, 120, 320),
+    order: 0,
+  },
+  {
+    id: 'aggressive',
+    name: 'Aggressive savings',
+    description: 'Moves $400 from Spending to TFSA',
+    amounts: tpl(1100, 980, 120, 120, 320),
+    order: 1,
+  },
+  {
+    id: 'holiday',
+    name: 'Holiday month',
+    description: 'Extra $300 to Spending, RRSP paused',
+    amounts: tpl(1100, 580, 820, 140, 0),
+    order: 2,
+  },
   { id: 'blank', name: 'Start blank', description: 'Allocate from $0', amounts: tpl(0, 0, 0, 0, 0), order: 3 },
 ];
 
@@ -124,13 +181,15 @@ function addPaycheque(payDate: string, net: Cents, amounts: Record<string, numbe
     const fromLatest = total - 1 - k;
     if (fromLatest === 0) addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 520, emergency: 120 });
     // Sep 12 and Aug 29 each save $920 (35%): with Sep 26's 26.5% the 3-paycheque average is 32%.
-    else if (fromLatest === 1 || fromLatest === 2) addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 620, emergency: 120, rrsp: 220 });
+    else if (fromLatest === 1 || fromLatest === 2)
+      addPaycheque(payDate, NET, { chequing: 1100, tfsa: 580, spending: 620, emergency: 120, rrsp: 220 });
     else if (payDate === '2025-08-15')
       addPaycheque(payDate, 314000, { chequing: 1100, tfsa: 580, spending: 1020, emergency: 120, rrsp: 320 }, 'Included $500 bonus');
     else {
       // Older paycheques: savings follow the historic rate, split 60/15/25 across TFSA/Emergency/RRSP.
-      const saved = Math.round((historicRates[k] / 100) * 2640 / 10) * 10;
-      const tfsa = Math.round(saved * 0.6 / 10) * 10, emergency = Math.round(saved * 0.15 / 10) * 10;
+      const saved = Math.round(((historicRates[k] / 100) * 2640) / 10) * 10;
+      const tfsa = Math.round((saved * 0.6) / 10) * 10,
+        emergency = Math.round((saved * 0.15) / 10) * 10;
       addPaycheque(payDate, NET, { chequing: 1100, tfsa, emergency, rrsp: saved - tfsa - emergency, spending: 2640 - 1100 - saved });
     }
   }
@@ -230,8 +289,27 @@ const transactions: Transaction[] = [];
 // ─── Goals & bills ───────────────────────────────────────────────────────────
 
 const goals: Goal[] = [
-  { id: 'emergency', name: 'Emergency fund', target: 1000000, current: 842000, accountId: 'emergency', color: '#8fae8f', kind: 'balance', contributionPerPaycheque: 23000, order: 0 },
-  { id: 'tfsa-2026', name: 'TFSA room · 2026', target: 700000, current: 580000, accountId: 'tfsa', color: 'var(--acc)', kind: 'room', order: 1 },
+  {
+    id: 'emergency',
+    name: 'Emergency fund',
+    target: 1000000,
+    current: 842000,
+    accountId: 'emergency',
+    color: '#8fae8f',
+    kind: 'balance',
+    contributionPerPaycheque: 23000,
+    order: 0,
+  },
+  {
+    id: 'tfsa-2026',
+    name: 'TFSA room · 2026',
+    target: 700000,
+    current: 580000,
+    accountId: 'tfsa',
+    color: 'var(--acc)',
+    kind: 'room',
+    order: 1,
+  },
   { id: 'japan', name: 'Japan trip', target: 400000, current: 124000, color: '#d8b67a', due: '2027-05-01', kind: 'balance', order: 2 },
 ];
 
@@ -270,9 +348,18 @@ const balanceSnapshots: BalanceSnapshot[] = accounts.flatMap((a, i) => {
 /** Weekly net position for ~18 months, through key points, ending at today's exact total. */
 const netSnapshots: NetSnapshot[] = (() => {
   const keys: [string, number][] = [
-    ['2024-04-05', 33800], ['2024-07-05', 35900], ['2024-10-04', 38100], ['2025-01-03', 39600],
-    ['2025-04-04', 40700], ['2025-05-02', 41100], ['2025-06-06', 42100], ['2025-07-04', 42900],
-    ['2025-08-01', 43700], ['2025-08-15', 44900], ['2025-08-29', 45700], ['2025-09-12', 46600],
+    ['2024-04-05', 33800],
+    ['2024-07-05', 35900],
+    ['2024-10-04', 38100],
+    ['2025-01-03', 39600],
+    ['2025-04-04', 40700],
+    ['2025-05-02', 41100],
+    ['2025-06-06', 42100],
+    ['2025-07-04', 42900],
+    ['2025-08-01', 43700],
+    ['2025-08-15', 44900],
+    ['2025-08-29', 45700],
+    ['2025-09-12', 46600],
     ['2025-09-26', 47450],
   ];
   const end = accounts.reduce((s, a) => s + a.balance, 0);
@@ -328,9 +415,20 @@ const chart = (c: Partial<ChartDef> & Pick<ChartDef, 'id' | 'title' | 'measure' 
 /** Pinned charts sit after Goals so the top of the Overview matches 4a. */
 const charts: ChartDef[] = [
   chart({
-    id: 'savings-rate', title: 'Savings rate by paycheque', question: 'Am I saving more?', measure: 'savingsRate', bucket: 'paycheque',
-    range: 12, kind: 'line', yAxis: 'percent', target: 30, showTarget: true, showNotes: true, status: 'pinned',
-    pin: { size: 'M', after: 'goals', pinnedAt: '2025-06-01T12:00:00Z' }, editedAt: SEED_TODAY,
+    id: 'savings-rate',
+    title: 'Savings rate by paycheque',
+    question: 'Am I saving more?',
+    measure: 'savingsRate',
+    bucket: 'paycheque',
+    range: 12,
+    kind: 'line',
+    yAxis: 'percent',
+    target: 30,
+    showTarget: true,
+    showNotes: true,
+    status: 'pinned',
+    pin: { size: 'M', after: 'goals', pinnedAt: '2025-06-01T12:00:00Z' },
+    editedAt: SEED_TODAY,
     notes: [
       { date: '2025-08-15', label: 'Bonus +$500' },
       { date: '2025-07-04', label: 'Raise · 4%' },
@@ -338,24 +436,65 @@ const charts: ChartDef[] = [
     ],
   }),
   chart({
-    id: 'monthly-spending', title: 'Monthly spending by category', question: 'Where does my money go?', measure: 'spending',
-    bucket: 'month', range: 6, kind: 'stackedBars', status: 'pinned', pin: { size: 'L', after: 'goals', pinnedAt: '2025-06-03T12:00:00Z' }, editedAt: '2025-09-30',
+    id: 'monthly-spending',
+    title: 'Monthly spending by category',
+    question: 'Where does my money go?',
+    measure: 'spending',
+    bucket: 'month',
+    range: 6,
+    kind: 'stackedBars',
+    status: 'pinned',
+    pin: { size: 'L', after: 'goals', pinnedAt: '2025-06-03T12:00:00Z' },
+    editedAt: '2025-09-30',
   }),
   chart({
-    id: 'dining-plan', title: 'Dining vs. plan', question: 'Am I sticking to plan?', measure: 'categoryVsPlan', categoryId: 'dining',
-    bucket: 'month', range: 6, kind: 'barsVsPlan', status: 'draft', editedAt: '2025-09-22',
+    id: 'dining-plan',
+    title: 'Dining vs. plan',
+    question: 'Am I sticking to plan?',
+    measure: 'categoryVsPlan',
+    categoryId: 'dining',
+    bucket: 'month',
+    range: 6,
+    kind: 'barsVsPlan',
+    status: 'draft',
+    editedAt: '2025-09-22',
   }),
   chart({
-    id: 'net-position', title: 'Net position', question: 'Is my net position growing?', measure: 'netPosition', bucket: 'month',
-    range: 12, kind: 'area', color: '#8fae8f', status: 'pinned', pin: { size: 'M', after: 'goals', pinnedAt: '2025-06-02T12:00:00Z' }, editedAt: '2025-08-14',
+    id: 'net-position',
+    title: 'Net position',
+    question: 'Is my net position growing?',
+    measure: 'netPosition',
+    bucket: 'month',
+    range: 12,
+    kind: 'area',
+    color: '#8fae8f',
+    status: 'pinned',
+    pin: { size: 'M', after: 'goals', pinnedAt: '2025-06-02T12:00:00Z' },
+    editedAt: '2025-08-14',
   }),
   chart({
-    id: 'paycheque-split', title: 'Where each paycheque goes', question: 'Where does each paycheque go?', measure: 'allocation',
-    bucket: 'paycheque', range: 1, kind: 'allocationTicks', status: 'saved', pin: { size: 'M', after: '', alsoOn: ['paycheques'] }, editedAt: '2025-10-04',
+    id: 'paycheque-split',
+    title: 'Where each paycheque goes',
+    question: 'Where does each paycheque go?',
+    measure: 'allocation',
+    bucket: 'paycheque',
+    range: 1,
+    kind: 'allocationTicks',
+    status: 'saved',
+    pin: { size: 'M', after: '', alsoOn: ['paycheques'] },
+    editedAt: '2025-10-04',
   }),
   chart({
-    id: 'grocery-merchants', title: 'Top grocery merchants', question: 'Where do I shop most?', measure: 'merchantSpend',
-    categoryId: 'groceries', bucket: 'month', range: 91, kind: 'ranked', status: 'draft', editedAt: '2025-07-30',
+    id: 'grocery-merchants',
+    title: 'Top grocery merchants',
+    question: 'Where do I shop most?',
+    measure: 'merchantSpend',
+    categoryId: 'groceries',
+    bucket: 'month',
+    range: 91,
+    kind: 'ranked',
+    status: 'draft',
+    editedAt: '2025-07-30',
   }),
 ];
 

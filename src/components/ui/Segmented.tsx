@@ -19,9 +19,7 @@ export function Segmented<T extends string>({ value, options, onChange, label, v
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
       className={
-        seg
-          ? `flex gap-0.5 rounded-[11px] bg-seg p-[3px] text-[12px] ${className}`
-          : `flex gap-0.5 text-[11px] text-mute ${className}`
+        seg ? `flex gap-0.5 rounded-[11px] bg-seg p-[3px] text-[12px] ${className}` : `flex gap-0.5 text-[11px] text-mute ${className}`
       }
     >
       {options.map((o) => (

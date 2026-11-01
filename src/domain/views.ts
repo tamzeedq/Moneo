@@ -2,9 +2,8 @@
 import type { Account, Cents, ISODate, MoneoData, Paycheque } from './types';
 import { addDaysISO } from './dates';
 import { money, sum } from './money';
-import {
-  allocationsFor, budgetWatch, leftToAllocate, periodInfo, snapshotsFor, spendingPace, spentBetween,
-} from './selectors';
+import { allocationsFor, budgetWatch, leftToAllocate, periodInfo, snapshotsFor, spentBetween } from './selectors';
+import { spendingPace } from './periods';
 import type { Tone } from './wizard';
 
 // ─── Paycheques ──────────────────────────────────────────────────────────────
@@ -21,7 +20,10 @@ export interface HistoryRow {
 export function paychequeHistory(data: MoneoData, today: ISODate): HistoryRow[] {
   const templates = new Map(data.templates.map((t) => [t.id, t.name]));
   return byPayDateDesc(data.paycheques).map((p) => {
-    const left = leftToAllocate(p.net, allocationsFor(data.allocations, p.id).map((a) => a.amount));
+    const left = leftToAllocate(
+      p.net,
+      allocationsFor(data.allocations, p.id).map((a) => a.amount),
+    );
     const note = p.note ? ` · ${p.note.charAt(0).toLowerCase()}${p.note.slice(1)}` : '';
     if (p.payDate > today) {
       const t = p.templateId && templates.get(p.templateId);
@@ -99,7 +101,9 @@ export function needsAttention(data: MoneoData, p: Paycheque): AttentionRow[] {
 
 /** Paycheques that have a budget, oldest first, for the period navigator. */
 export const budgetedPaycheques = (data: MoneoData) =>
-  [...data.paycheques].filter((p) => data.budgetLines.some((l) => l.paychequeId === p.id)).sort((a, b) => a.payDate.localeCompare(b.payDate));
+  [...data.paycheques]
+    .filter((p) => data.budgetLines.some((l) => l.paychequeId === p.id))
+    .sort((a, b) => a.payDate.localeCompare(b.payDate));
 
 // ─── Accounts ────────────────────────────────────────────────────────────────
 
@@ -126,7 +130,11 @@ export function accountActivity(data: MoneoData, accountId: string, today: ISODa
     .map((t) => ({ date: t.date, label: t.paychequeId ? `Paycheque · ${t.merchant}` : t.merchant, amount: t.amount }));
   for (const p of data.paycheques) {
     if (p.payDate > today || p.depositAccountId === accountId) continue;
-    const amount = sum(allocationsFor(data.allocations, p.id).filter((a) => a.accountId === accountId).map((a) => a.amount));
+    const amount = sum(
+      allocationsFor(data.allocations, p.id)
+        .filter((a) => a.accountId === accountId)
+        .map((a) => a.amount),
+    );
     if (amount) rows.push({ date: p.payDate, label: 'Paycheque allocation', amount });
   }
   return rows.sort((a, b) => b.date.localeCompare(a.date) || a.label.localeCompare(b.label)).slice(0, n);
@@ -139,4 +147,3 @@ export function balanceHistory(data: MoneoData, accountId: string, range: Balanc
   const days = { '1M': 31, '6M': 183, '1Y': 365, All: Infinity }[range];
   return days === Infinity ? all : all.filter((s) => s.date >= addDaysISO(today, -days));
 }
-

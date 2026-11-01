@@ -1,9 +1,20 @@
 import Dexie, { type Table } from 'dexie';
 import type {
-  Account, Allocation, BalanceSnapshot, Bill, BudgetLine, Category, ChartDef,
-  Goal, MoneoData, NetSnapshot, Paycheque, SplitTemplate, Transaction,
+  Account,
+  Allocation,
+  BalanceSnapshot,
+  Bill,
+  BudgetLine,
+  Category,
+  ChartDef,
+  Goal,
+  MoneoData,
+  NetSnapshot,
+  Paycheque,
+  SplitTemplate,
+  Transaction,
 } from '@/domain/types';
-import { buildSeed } from './seed';
+import { workspace } from './workspace';
 
 export class MoneoDB extends Dexie {
   accounts!: Table<Account, string>;
@@ -19,7 +30,8 @@ export class MoneoDB extends Dexie {
   netSnapshots!: Table<NetSnapshot, string>;
   charts!: Table<ChartDef, string>;
 
-  constructor(name = 'moneo') {
+  /** `initial` fills a brand-new database (sample data for the demo, defaults for a real workspace). */
+  constructor(name: string, initial: () => MoneoData) {
     super(name);
     this.version(1).stores({
       accounts: 'id, order',
@@ -36,12 +48,12 @@ export class MoneoDB extends Dexie {
       charts: 'id, status',
     });
     this.on('populate', (tx) => {
-      const seed = buildSeed();
-      for (const key of Object.keys(seed) as (keyof MoneoData)[]) {
-        void tx.table(key).bulkAdd(seed[key] as unknown[]);
+      const data = initial();
+      for (const key of Object.keys(data) as (keyof MoneoData)[]) {
+        void tx.table(key).bulkAdd(data[key] as unknown[]);
       }
     });
   }
 }
 
-export const db = new MoneoDB();
+export const db = new MoneoDB(workspace.dbName, workspace.initial);

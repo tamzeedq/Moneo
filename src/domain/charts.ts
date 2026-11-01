@@ -3,9 +3,7 @@
  * Everything here is pure; components only draw what this returns.
  */
 import { addMonths, endOfMonth, format, startOfMonth } from 'date-fns';
-import type {
-  ChartBucket, ChartDef, ChartKind, ChartMeasure, Cents, ISODate, MoneoData, PinSize,
-} from './types';
+import type { ChartBucket, ChartDef, ChartKind, ChartMeasure, Cents, ISODate, MoneoData, PinSize } from './types';
 import { addDaysISO, parse, shortDate, toISO } from './dates';
 import { money, sum } from './money';
 import { allocationsFor, inRange, isSpend, splitRows } from './selectors';
@@ -28,16 +26,70 @@ interface MeasureMeta {
 }
 
 export const MEASURES: Record<ChartMeasure, MeasureMeta> = {
-  savingsRate: { label: 'Savings rate', formula: 'TFSA + Emergency + RRSP ÷ net pay', kinds: ['line', 'area', 'bars'], buckets: ['paycheque', 'month'], topic: 'Saving', series: true, updates: 'Each paycheque' },
-  netPosition: { label: 'Net position', formula: 'All accounts, credit cards subtracted', kinds: ['line', 'area', 'bars'], buckets: ['month', 'week'], topic: 'Accounts', series: true, updates: 'Daily' },
-  spending: { label: 'Spending', formula: 'Categorised spending across all accounts', kinds: ['stackedBars', 'bars', 'line'], buckets: ['month', 'paycheque'], topic: 'Spending', series: true, updates: 'Daily' },
-  categoryVsPlan: { label: 'Category vs. plan', formula: 'One category’s spend against its budget', kinds: ['barsVsPlan'], buckets: ['month', 'paycheque'], topic: 'Spending', series: false, updates: 'Daily' },
-  allocation: { label: 'Paycheque split', formula: 'Latest paycheque, by account', kinds: ['allocationTicks'], buckets: ['paycheque'], topic: 'Saving', series: false, updates: 'Each paycheque' },
-  merchantSpend: { label: 'Merchant spend', formula: 'Spend per merchant, ranked', kinds: ['ranked'], buckets: ['month'], topic: 'Spending', series: false, updates: 'Daily' },
+  savingsRate: {
+    label: 'Savings rate',
+    formula: 'TFSA + Emergency + RRSP ÷ net pay',
+    kinds: ['line', 'area', 'bars'],
+    buckets: ['paycheque', 'month'],
+    topic: 'Saving',
+    series: true,
+    updates: 'Each paycheque',
+  },
+  netPosition: {
+    label: 'Net position',
+    formula: 'All accounts, credit cards subtracted',
+    kinds: ['line', 'area', 'bars'],
+    buckets: ['month', 'week'],
+    topic: 'Accounts',
+    series: true,
+    updates: 'Daily',
+  },
+  spending: {
+    label: 'Spending',
+    formula: 'Categorised spending across all accounts',
+    kinds: ['stackedBars', 'bars', 'line'],
+    buckets: ['month', 'paycheque'],
+    topic: 'Spending',
+    series: true,
+    updates: 'Daily',
+  },
+  categoryVsPlan: {
+    label: 'Category vs. plan',
+    formula: 'One category’s spend against its budget',
+    kinds: ['barsVsPlan'],
+    buckets: ['month', 'paycheque'],
+    topic: 'Spending',
+    series: false,
+    updates: 'Daily',
+  },
+  allocation: {
+    label: 'Paycheque split',
+    formula: 'Latest paycheque, by account',
+    kinds: ['allocationTicks'],
+    buckets: ['paycheque'],
+    topic: 'Saving',
+    series: false,
+    updates: 'Each paycheque',
+  },
+  merchantSpend: {
+    label: 'Merchant spend',
+    formula: 'Spend per merchant, ranked',
+    kinds: ['ranked'],
+    buckets: ['month'],
+    topic: 'Spending',
+    series: false,
+    updates: 'Daily',
+  },
 };
 
 export const KIND_LABELS: Record<ChartKind, string> = {
-  line: 'Line', area: 'Area', bars: 'Bars', stackedBars: 'Stacked bars', barsVsPlan: 'Bars vs. plan', allocationTicks: 'Allocation', ranked: 'Ranked',
+  line: 'Line',
+  area: 'Area',
+  bars: 'Bars',
+  stackedBars: 'Stacked bars',
+  barsVsPlan: 'Bars vs. plan',
+  allocationTicks: 'Allocation',
+  ranked: 'Ranked',
 };
 
 export const BUCKET_LABELS: Record<ChartBucket, string> = { paycheque: 'Paycheque', week: 'Week', month: 'Month' };
@@ -46,7 +98,13 @@ export const BUCKET_LABELS: Record<ChartBucket, string> = { paycheque: 'Paychequ
 export function rangeOptions(def: Pick<ChartDef, 'measure' | 'bucket'>): { label: string; value: number }[] {
   const labels = ['3 mo', '6 mo', '1 yr'];
   const values =
-    def.measure === 'merchantSpend' ? [91, 182, 365] : def.bucket === 'paycheque' ? [6, 12, 26] : def.bucket === 'week' ? [13, 26, 52] : [3, 6, 12];
+    def.measure === 'merchantSpend'
+      ? [91, 182, 365]
+      : def.bucket === 'paycheque'
+        ? [6, 12, 26]
+        : def.bucket === 'week'
+          ? [13, 26, 52]
+          : [3, 6, 12];
   return labels.map((label, i) => ({ label, value: values[i] }));
 }
 
@@ -116,12 +174,21 @@ function buckets(data: MoneoData, bucket: ChartBucket, range: number, today: ISO
     const m = addMonths(startOfMonth(now), -(range - 1 - i));
     const end = toISO(endOfMonth(m));
     const current = end >= today;
-    return { start: toISO(m), end: current ? today : end, label: format(m, 'MMM'), title: format(m, 'MMMM yyyy') + (current ? ' (to date)' : '') };
+    return {
+      start: toISO(m),
+      end: current ? today : end,
+      label: format(m, 'MMM'),
+      title: format(m, 'MMMM yyyy') + (current ? ' (to date)' : ''),
+    };
   });
 }
 
 const spendIn = (data: MoneoData, start: ISODate, end: ISODate, categoryId?: string) =>
-  -sum(data.transactions.filter((t) => isSpend(t) && inRange(t, start, end) && (!categoryId || t.categoryId === categoryId)).map((t) => t.amount));
+  -sum(
+    data.transactions
+      .filter((t) => isSpend(t) && inRange(t, start, end) && (!categoryId || t.categoryId === categoryId))
+      .map((t) => t.amount),
+  );
 
 const SAVINGS = (data: MoneoData) => new Set(data.accounts.filter((a) => ['tfsa', 'emergency', 'rrsp'].includes(a.kind)).map((a) => a.id));
 
@@ -134,12 +201,20 @@ export function computeChart(def: ChartDef, data: MoneoData, today: ISODate): Ch
       const dollars = def.yAxis === 'dollars';
       const pays = sortedPaycheques(data);
       const points = buckets(data, def.bucket, def.range, today).map((b) => {
-        const inB = def.bucket === 'paycheque' ? pays.filter((p) => p.periodStart === b.start) : pays.filter((p) => p.payDate >= b.start && p.payDate <= b.end);
+        const inB =
+          def.bucket === 'paycheque'
+            ? pays.filter((p) => p.periodStart === b.start)
+            : pays.filter((p) => p.payDate >= b.start && p.payDate <= b.end);
         const net = sum(inB.map((p) => p.net));
-        const saved = sum(inB.flatMap((p) => allocationsFor(data.allocations, p.id)).filter((a) => savings.has(a.accountId)).map((a) => a.amount));
+        const saved = sum(
+          inB
+            .flatMap((p) => allocationsFor(data.allocations, p.id))
+            .filter((a) => savings.has(a.accountId))
+            .map((a) => a.amount),
+        );
         const rate = net ? (saved / net) * 100 : 0;
         return {
-          date: def.bucket === 'paycheque' ? inB[0]?.payDate ?? b.start : b.start,
+          date: def.bucket === 'paycheque' ? (inB[0]?.payDate ?? b.start) : b.start,
           label: b.label,
           title: b.title,
           value: dollars ? saved : rate,
@@ -159,14 +234,20 @@ export function computeChart(def: ChartDef, data: MoneoData, today: ISODate): Ch
     case 'spending': {
       const bs = buckets(data, def.bucket, def.range, today);
       if (def.kind !== 'stackedBars') {
-        return { type: 'series', unit: 'money', points: bs.map((b) => ({ date: b.start, label: b.label, title: b.title, value: spendIn(data, b.start, b.end) })) };
+        return {
+          type: 'series',
+          unit: 'money',
+          points: bs.map((b) => ({ date: b.start, label: b.label, title: b.title, value: spendIn(data, b.start, b.end) })),
+        };
       }
-      const first = bs[0]?.start ?? today, last = bs.at(-1)?.end ?? today;
-      const totals = data.categories
-        .map((c) => ({ c, v: spendIn(data, first, last, c.id) }))
-        .sort((a, b) => b.v - a.v);
+      const first = bs[0]?.start ?? today,
+        last = bs.at(-1)?.end ?? today;
+      const totals = data.categories.map((c) => ({ c, v: spendIn(data, first, last, c.id) })).sort((a, b) => b.v - a.v);
       const top = totals.slice(0, 4).map((t) => t.c);
-      const legend = [...top.map((c) => ({ key: c.id, label: c.name, color: c.color })), { key: 'other', label: 'Other', color: '#a8a29a' }];
+      const legend = [
+        ...top.map((c) => ({ key: c.id, label: c.name, color: c.color })),
+        { key: 'other', label: 'Other', color: '#a8a29a' },
+      ];
       return {
         type: 'stacked',
         unit: 'money',
@@ -192,7 +273,9 @@ export function computeChart(def: ChartDef, data: MoneoData, today: ISODate): Ch
         buckets: buckets(data, def.bucket, def.range, today).map((b) => {
           const plan =
             def.bucket === 'paycheque'
-              ? data.budgetLines.find((l) => l.categoryId === categoryId && pays.find((p) => p.id === l.paychequeId)?.periodStart === b.start)?.plan ?? perPay
+              ? (data.budgetLines.find(
+                  (l) => l.categoryId === categoryId && pays.find((p) => p.id === l.paychequeId)?.periodStart === b.start,
+                )?.plan ?? perPay)
               : monthly;
           return { date: b.start, label: b.label, title: b.title, value: spendIn(data, b.start, b.end, categoryId), plan };
         }),
@@ -217,7 +300,13 @@ export function computeChart(def: ChartDef, data: MoneoData, today: ISODate): Ch
         if (!isSpend(t) || !inRange(t, from, today) || (def.categoryId && t.categoryId !== def.categoryId)) continue;
         by.set(t.merchant, (by.get(t.merchant) ?? 0) - t.amount);
       }
-      return { type: 'ranked', rows: [...by].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 5) };
+      return {
+        type: 'ranked',
+        rows: [...by]
+          .map(([label, value]) => ({ label, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5),
+      };
     }
   }
 }
@@ -252,7 +341,9 @@ export function headline(def: ChartDef, r: ChartResult): Headline {
     case 'series': {
       const pts = r.points;
       if (!pts.length) return { big: '—', delta: 'No data yet', tone: 'mute' };
-      const first = pts[0].value, last = pts[pts.length - 1].value, d = last - first;
+      const first = pts[0].value,
+        last = pts[pts.length - 1].value,
+        d = last - first;
       const span = rangeLabel(def);
       if (r.unit === 'percent') {
         const pts = Math.round(d);
@@ -267,18 +358,27 @@ export function headline(def: ChartDef, r: ChartResult): Headline {
     case 'stacked': {
       // Compare the last full bucket with the one before (the current month is usually partial).
       const full = r.buckets.filter((b) => !b.title.endsWith('(to date)'));
-      const cur = full.at(-1), prev = full.at(-2);
+      const cur = full.at(-1),
+        prev = full.at(-2);
       if (!cur) return { big: '—', delta: '', tone: 'mute' };
       if (!prev || !prev.value) return { big: money(cur.value, { decimals: 0 }), delta: cur.label, tone: 'mute' };
       const pct = Math.round(((cur.value - prev.value) / prev.value) * 100);
-      return { big: money(cur.value, { decimals: 0 }), delta: `${pct >= 0 ? '+' : '−'}${Math.abs(pct)}% vs. ${prev.label}`, tone: pct <= 0 ? 'pos' : 'acc' };
+      return {
+        big: money(cur.value, { decimals: 0 }),
+        delta: `${pct >= 0 ? '+' : '−'}${Math.abs(pct)}% vs. ${prev.label}`,
+        tone: pct <= 0 ? 'pos' : 'acc',
+      };
     }
     case 'vsPlan': {
       const full = r.buckets.filter((b) => !b.title.endsWith('(to date)'));
       const cur = full.at(-1);
       if (!cur) return { big: '—', delta: '', tone: 'mute' };
       const d = cur.plan - cur.value;
-      return { big: money(cur.value, { decimals: 0 }), delta: `${money(Math.abs(d), { decimals: 0 })} ${d >= 0 ? 'under' : 'over'} plan`, tone: d >= 0 ? 'pos' : 'acc' };
+      return {
+        big: money(cur.value, { decimals: 0 }),
+        delta: `${money(Math.abs(d), { decimals: 0 })} ${d >= 0 ? 'under' : 'over'} plan`,
+        tone: d >= 0 ? 'pos' : 'acc',
+      };
     }
     case 'allocation':
       return r.unallocated > 0
@@ -302,7 +402,8 @@ export function seriesStats(def: ChartDef, points: Point[], unit: Unit): Stat[] 
   const vals = points.map((p) => p.value);
   const avg = sum(vals) / vals.length;
   const bestIdx = def.measure === 'spending' ? vals.indexOf(Math.min(...vals)) : vals.indexOf(Math.max(...vals));
-  const change = unit === 'percent' ? Math.round(vals[vals.length - 1] - vals[0]) : Math.round((vals[vals.length - 1] - vals[0]) / 100) * 100;
+  const change =
+    unit === 'percent' ? Math.round(vals[vals.length - 1] - vals[0]) : Math.round((vals[vals.length - 1] - vals[0]) / 100) * 100;
   const sign = change > 0 ? '+' : change < 0 ? '−' : '';
   const fmtChange = unit === 'percent' ? `${sign}${Math.abs(change)} pts` : `${sign}${money(Math.abs(change), { decimals: 0 })}`;
   const unitName = def.bucket === 'paycheque' ? 'paycheques' : `${def.bucket}s`;
@@ -311,10 +412,20 @@ export function seriesStats(def: ChartDef, points: Point[], unit: Unit): Stat[] 
   const goodChange = def.measure === 'spending' ? change <= 0 : change >= 0;
   return [
     { label: 'Average', value: formatValue(avg, unit), sub: `over ${points.length} ${unitName}`, tone: 'mute' },
-    { label: def.measure === 'spending' ? 'Lowest' : 'Best', value: formatValue(vals[bestIdx], unit), sub: points[bestIdx].label, tone: 'pos' },
+    {
+      label: def.measure === 'spending' ? 'Lowest' : 'Best',
+      value: formatValue(vals[bestIdx], unit),
+      sub: points[bestIdx].label,
+      tone: 'pos',
+    },
     { label: 'Change', value: fmtChange, sub: `since ${points[0].label}`, tone: goodChange ? 'pos' : 'acc' },
     def.showTarget && def.target !== undefined
-      ? { label: def.measure === 'spending' ? 'At or under target' : 'At or above target', value: `${vals.filter(good).length} of ${vals.length}`, sub: `target ${formatValue(target, unit)}`, tone: 'mute' }
+      ? {
+          label: def.measure === 'spending' ? 'At or under target' : 'At or above target',
+          value: `${vals.filter(good).length} of ${vals.length}`,
+          sub: `target ${formatValue(target, unit)}`,
+          tone: 'mute',
+        }
       : { label: 'Latest', value: formatValue(vals[vals.length - 1], unit), sub: points[points.length - 1].label, tone: 'mute' },
   ];
 }
@@ -345,7 +456,9 @@ export function chartCsv(def: ChartDef, r: ChartResult): string {
     r.points.forEach((p) => rows.push([p.date, p.label, r.unit === 'percent' ? p.value.toFixed(1) : (p.value / 100).toFixed(2)]));
   } else if (r.type === 'stacked') {
     rows.push(['date', 'label', ...r.legend.map((l) => l.label), 'total']);
-    r.buckets.forEach((b) => rows.push([b.date, b.label, ...b.segments.map((s) => (s.value / 100).toFixed(2)), (b.value / 100).toFixed(2)]));
+    r.buckets.forEach((b) =>
+      rows.push([b.date, b.label, ...b.segments.map((s) => (s.value / 100).toFixed(2)), (b.value / 100).toFixed(2)]),
+    );
   } else if (r.type === 'vsPlan') {
     rows.push(['date', 'label', 'spent', 'plan']);
     r.buckets.forEach((b) => rows.push([b.date, b.label, (b.value / 100).toFixed(2), (b.plan / 100).toFixed(2)]));
@@ -372,12 +485,96 @@ export interface Question {
 const base = { color: 'var(--acc)', showTarget: false, showNotes: false, notes: [] as ChartDef['notes'] };
 
 export const QUESTIONS: Question[] = [
-  { id: 'saving', question: 'Am I saving more?', sub: 'Savings rate each paycheque', def: { ...base, title: 'Savings rate by paycheque', question: 'Am I saving more?', measure: 'savingsRate', bucket: 'paycheque', range: 12, kind: 'line', yAxis: 'percent', target: 30, showTarget: true } },
-  { id: 'where', question: 'Where does my money go?', sub: 'Spending split by category', def: { ...base, title: 'Monthly spending by category', question: 'Where does my money go?', measure: 'spending', bucket: 'month', range: 6, kind: 'stackedBars' } },
-  { id: 'plan', question: 'Am I sticking to plan?', sub: 'One category against its budget', def: { ...base, title: 'Dining vs. plan', question: 'Am I sticking to plan?', measure: 'categoryVsPlan', categoryId: 'dining', bucket: 'month', range: 6, kind: 'barsVsPlan' } },
-  { id: 'net', question: 'Is my net position growing?', sub: 'All accounts, month by month', def: { ...base, title: 'Net position', question: 'Is my net position growing?', measure: 'netPosition', bucket: 'month', range: 12, kind: 'area', color: '#8fae8f' } },
-  { id: 'split', question: 'Where does each paycheque go?', sub: 'Split across accounts', def: { ...base, title: 'Where each paycheque goes', question: 'Where does each paycheque go?', measure: 'allocation', bucket: 'paycheque', range: 1, kind: 'allocationTicks' } },
-  { id: 'shop', question: 'Where do I shop most?', sub: 'Merchants ranked by spend', def: { ...base, title: 'Top grocery merchants', question: 'Where do I shop most?', measure: 'merchantSpend', categoryId: 'groceries', bucket: 'month', range: 91, kind: 'ranked' } },
+  {
+    id: 'saving',
+    question: 'Am I saving more?',
+    sub: 'Savings rate each paycheque',
+    def: {
+      ...base,
+      title: 'Savings rate by paycheque',
+      question: 'Am I saving more?',
+      measure: 'savingsRate',
+      bucket: 'paycheque',
+      range: 12,
+      kind: 'line',
+      yAxis: 'percent',
+      target: 30,
+      showTarget: true,
+    },
+  },
+  {
+    id: 'where',
+    question: 'Where does my money go?',
+    sub: 'Spending split by category',
+    def: {
+      ...base,
+      title: 'Monthly spending by category',
+      question: 'Where does my money go?',
+      measure: 'spending',
+      bucket: 'month',
+      range: 6,
+      kind: 'stackedBars',
+    },
+  },
+  {
+    id: 'plan',
+    question: 'Am I sticking to plan?',
+    sub: 'One category against its budget',
+    def: {
+      ...base,
+      title: 'Dining vs. plan',
+      question: 'Am I sticking to plan?',
+      measure: 'categoryVsPlan',
+      categoryId: 'dining',
+      bucket: 'month',
+      range: 6,
+      kind: 'barsVsPlan',
+    },
+  },
+  {
+    id: 'net',
+    question: 'Is my net position growing?',
+    sub: 'All accounts, month by month',
+    def: {
+      ...base,
+      title: 'Net position',
+      question: 'Is my net position growing?',
+      measure: 'netPosition',
+      bucket: 'month',
+      range: 12,
+      kind: 'area',
+      color: '#8fae8f',
+    },
+  },
+  {
+    id: 'split',
+    question: 'Where does each paycheque go?',
+    sub: 'Split across accounts',
+    def: {
+      ...base,
+      title: 'Where each paycheque goes',
+      question: 'Where does each paycheque go?',
+      measure: 'allocation',
+      bucket: 'paycheque',
+      range: 1,
+      kind: 'allocationTicks',
+    },
+  },
+  {
+    id: 'shop',
+    question: 'Where do I shop most?',
+    sub: 'Merchants ranked by spend',
+    def: {
+      ...base,
+      title: 'Top grocery merchants',
+      question: 'Where do I shop most?',
+      measure: 'merchantSpend',
+      categoryId: 'groceries',
+      bucket: 'month',
+      range: 91,
+      kind: 'ranked',
+    },
+  },
 ];
 
 /** Sensible defaults when switching measure in the editor. */

@@ -22,6 +22,9 @@ export function RecentTransactionsCard({ data, today }: { data: MoneoData; today
         <span>Account</span>
         <span className="text-right">Amount</span>
       </div>
+      {txs.length === 0 && (
+        <div className="px-2.5 py-6 text-center text-[13px] text-mute">No transactions yet. Add one or import a CSV.</div>
+      )}
       {txs.map((t) => {
         const cat = t.categoryId ? cats.get(t.categoryId) : undefined;
         const income = t.amount > 0;

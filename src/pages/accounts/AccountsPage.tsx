@@ -14,13 +14,15 @@ import { Field } from '@/components/ui/Field';
 import { HeroMoney } from '@/components/ui/Money';
 import { Segmented } from '@/components/ui/Segmented';
 import { Select } from '@/components/ui/Select';
+import { Switch } from '@/components/ui/Switch';
 import { Swatch } from '@/components/ui/Avatar';
 import { Sparkline } from '@/components/charts/Sparkline';
 import { AreaLineChart } from '@/components/charts/AreaLineChart';
 import { btn, field } from '@/components/ui/styles';
 import { ModalForm } from '@/components/ui/ModalForm';
-import { axisLabels } from '@/pages/overview/NetPositionCard';
+import { axisLabels } from '@/components/charts/axisLabels';
 import { toast } from '@/stores/toast';
+import { newId } from '@/lib/id';
 
 const RANGES: BalanceRange[] = ['1M', '6M', '1Y', 'All'];
 const KINDS: { value: AccountKind; label: string; purpose: string }[] = [
@@ -50,7 +52,15 @@ export function AccountsPage() {
 
   return (
     <>
-      <PageHeader title="Accounts" actions={<><ThemeToggle /><AddAccountDialog data={data} onAdded={select} /></>} />
+      <PageHeader
+        title="Accounts"
+        actions={
+          <>
+            <ThemeToggle />
+            <AddAccountDialog data={data} onAdded={select} />
+          </>
+        }
+      />
       <div className="grid grid-cols-[380px_minmax(0,1fr)] items-start gap-[14px] max-lg:grid-cols-1">
         <Card className="flex flex-col gap-3 px-[22px]! py-5!">
           <div className="text-[13px] text-mute">Net position</div>
@@ -71,7 +81,10 @@ export function AccountsPage() {
             {accounts.map((a) => {
               const d = pay ? accountDelta(a, data.balanceSnapshots, pay.periodStart) : 0;
               const color = d >= 0 ? 'var(--pos)' : 'var(--acc)';
-              const series = snapshotsFor(data.balanceSnapshots, a.id).filter((s) => s.date <= now).slice(-20).map((s) => s.balance);
+              const series = snapshotsFor(data.balanceSnapshots, a.id)
+                .filter((s) => s.date <= now)
+                .slice(-20)
+                .map((s) => s.balance);
               const on = a.id === selected?.id;
               return (
                 <button
@@ -98,7 +111,9 @@ export function AccountsPage() {
             })}
           </div>
         </Card>
-        {selected && <Detail key={selected.id} data={data} account={selected} today={now} openUpdate={params.get('update') === selected.id} />}
+        {selected && (
+          <Detail key={selected.id} data={data} account={selected} today={now} openUpdate={params.get('update') === selected.id} />
+        )}
       </div>
     </>
   );
@@ -174,17 +189,31 @@ function UpdateBalanceDialog({ account, today, defaultOpen }: { account: Account
     <ModalForm
       open={open}
       onOpenChange={setOpen}
-      trigger={<button type="button" className="text-[12px] text-mute hover:text-ink">Update balance</button>}
+      trigger={
+        <button type="button" className="text-[12px] text-mute hover:text-ink">
+          Update balance
+        </button>
+      }
       title={`Update ${account.name}`}
       description={`Currently ${money(account.balance)}. The new balance is recorded for ${shortDate(today)}.`}
       submitLabel="Update"
       canSubmit={value !== null}
       onSubmit={save}
     >
-      <input autoFocus inputMode="decimal" className={field} placeholder={(account.balance / 100).toFixed(2)} value={text} onChange={(e) => setText(e.target.value)} />
+      <input
+        autoFocus
+        inputMode="decimal"
+        className={field}
+        placeholder={(account.balance / 100).toFixed(2)}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
       {value !== null && (
         <div className="text-[12px] text-mute">
-          Change: <span style={{ color: value - account.balance >= 0 ? 'var(--pos)' : 'var(--acc)' }}>{money(value - account.balance, { signed: true })}</span>
+          Change:{' '}
+          <span style={{ color: value - account.balance >= 0 ? 'var(--pos)' : 'var(--acc)' }}>
+            {money(value - account.balance, { signed: true })}
+          </span>
         </div>
       )}
     </ModalForm>
@@ -196,20 +225,23 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
   const [name, setName] = useState('');
   const [kind, setKind] = useState<AccountKind>('emergency');
   const [text, setText] = useState('');
+  // Credit cards are never split targets; everything else defaults to joining the split.
+  const [inSplit, setInSplit] = useState(true);
   const balance = parseDollars(text) ?? 0;
+  const splittable = kind !== 'credit';
   const save = async () => {
-    const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36).slice(-4);
     const used = new Set(data.accounts.map((a) => a.color));
     const a: Account = {
-      id,
+      id: newId(),
       name: name.trim(),
       kind,
       purpose: KINDS.find((k) => k.value === kind)!.purpose,
       color: NEW_COLORS.find((c) => !used.has(c)) ?? '#a8a29a',
       balance: kind === 'credit' ? -Math.abs(balance) : balance,
       order: Math.max(...data.accounts.map((x) => x.order), 0) + 1,
+      splitOrder: splittable && inSplit ? Math.max(-1, ...data.accounts.map((x) => x.splitOrder ?? -1)) + 1 : undefined,
     };
-    await repo.addAccount(a, today());
+    await repo.addAccounts([a], today());
     toast(`${a.name} added`);
     setOpen(false);
     setName('');
@@ -220,22 +252,54 @@ function AddAccountDialog({ data, onAdded }: { data: MoneoData; onAdded: (a: Acc
     <ModalForm
       open={open}
       onOpenChange={setOpen}
-      trigger={<button type="button" className={`${btn.primary} px-4!`}>+ Add account</button>}
+      trigger={
+        <button type="button" className={`${btn.primary} px-4!`}>
+          + Add account
+        </button>
+      }
       title="Add account"
-      description="Tracked manually. Add it to a paycheque split from a template later."
+      description="Tracked manually: update its balance whenever you like."
       submitLabel="Add account"
       canSubmit={!!name.trim()}
       onSubmit={save}
     >
       <Field label="Name" htmlFor="acct-name">
-        <input id="acct-name" autoFocus className={field} placeholder="e.g. Car fund" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          id="acct-name"
+          autoFocus
+          className={field}
+          placeholder="e.g. Car fund"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </Field>
       <Field label="Type">
-        <Select label="Type" value={kind} onChange={(v) => setKind(v as AccountKind)} options={KINDS.map((k) => ({ value: k.value, label: k.label }))} />
+        <Select
+          label="Type"
+          value={kind}
+          onChange={(v) => setKind(v as AccountKind)}
+          options={KINDS.map((k) => ({ value: k.value, label: k.label }))}
+        />
       </Field>
       <Field label={kind === 'credit' ? 'Amount owing' : 'Current balance'} htmlFor="acct-bal">
-        <input id="acct-bal" inputMode="decimal" className={field} placeholder="0.00" value={text} onChange={(e) => setText(e.target.value)} />
+        <input
+          id="acct-bal"
+          inputMode="decimal"
+          className={field}
+          placeholder="0.00"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
       </Field>
+      {splittable && (
+        <div className="flex items-center justify-between gap-3 rounded-[12px] bg-panel2 p-3 text-[12px]">
+          <span>
+            Include in paycheque splits
+            <span className="block text-[11px] text-mute">It gets a stepper in the split step of each new paycheque.</span>
+          </span>
+          <Switch checked={inSplit} onChange={setInSplit} label="Include in paycheque splits" />
+        </div>
+      )}
     </ModalForm>
   );
 }

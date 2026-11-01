@@ -1,22 +1,22 @@
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import type { ISODate } from './types';
 
-/**
- * The POC runs against seed data pinned to a fixed "today" so the screens match the design.
- * Override with VITE_DEMO_DATE=yyyy-MM-dd, or set it to "live" to use the real clock.
- */
-const DEMO_DATE: string = import.meta.env?.VITE_DEMO_DATE ?? '2025-10-04';
+let pinned: ISODate | null = null;
+
+/** Pins "today" to a fixed date (the demo workspace and tests), or null for the real clock. */
+export function setClock(date: ISODate | null) {
+  pinned = date;
+}
 
 export function today(): ISODate {
-  return DEMO_DATE === 'live' ? toISO(new Date()) : DEMO_DATE;
+  return pinned ?? toISO(new Date());
 }
 
 export const toISO = (d: Date): ISODate => format(d, 'yyyy-MM-dd');
 export const parse = (d: ISODate): Date => parseISO(d);
 
 export const addDaysISO = (d: ISODate, n: number): ISODate => toISO(addDays(parse(d), n));
-export const daysBetween = (from: ISODate, to: ISODate): number =>
-  differenceInCalendarDays(parse(to), parse(from));
+export const daysBetween = (from: ISODate, to: ISODate): number => differenceInCalendarDays(parse(to), parse(from));
 
 /** "Oct 3" */
 export const shortDate = (d: ISODate) => format(parse(d), 'MMM d');

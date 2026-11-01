@@ -15,8 +15,7 @@ export const useWizard = create<WizardState>()(
     (set) => ({
       draft: null,
       start: (draft) => set({ draft }),
-      update: (patch) =>
-        set((s) => (s.draft ? { draft: { ...s.draft, ...(typeof patch === 'function' ? patch(s.draft) : patch) } } : s)),
+      update: (patch) => set((s) => (s.draft ? { draft: { ...s.draft, ...(typeof patch === 'function' ? patch(s.draft) : patch) } } : s)),
       reset: () => set({ draft: null }),
     }),
     { name: 'moneo-wizard', version: 1 },

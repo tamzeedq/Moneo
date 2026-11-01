@@ -141,7 +141,12 @@ export interface ChartDef {
   notes: { date: ISODate; label: string }[];
   status: 'draft' | 'saved' | 'pinned';
   /** `after` is an Overview card id (see pages/overview/layout.ts). */
-  pin?: { size: PinSize; after: string; alsoOn?: string[]; /** When it was first pinned; keeps Overview order stable. */ pinnedAt?: string };
+  pin?: {
+    size: PinSize;
+    after: string;
+    alsoOn?: string[];
+    /** When it was first pinned; keeps Overview order stable. */ pinnedAt?: string;
+  };
   editedAt: ISODate;
 }
 

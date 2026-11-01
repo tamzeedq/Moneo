@@ -21,7 +21,13 @@ export function Stepper({ value, step, onChange, label }: Props) {
   const btnCls = 'w-7 flex-none py-[7px] text-center text-mute hover:text-ink disabled:opacity-40';
   return (
     <div className="flex items-center rounded-[10px] border border-line bg-bg" role="group" aria-label={label}>
-      <button type="button" className={btnCls} aria-label={`Decrease ${label}`} disabled={value <= 0} onClick={() => onChange(Math.max(0, value - step))}>
+      <button
+        type="button"
+        className={btnCls}
+        aria-label={`Decrease ${label}`}
+        disabled={value <= 0}
+        onClick={() => onChange(Math.max(0, value - step))}
+      >
         −
       </button>
       {editing === null ? (

@@ -1,7 +1,21 @@
 import { buildSeed, SEED_TODAY } from '@/data/seed';
 import {
-  averagePlan, budgetStatus, createDraft, draftPool, draftToRecords, firstInvalidStep, goalImpact, lastSpent,
-  moveDivider, nextPayDate, payPeriod, sameAmountCount, savingsOf, splitStatus, stepAmount,
+  averagePlan,
+  expectedPaycheques,
+  budgetStatus,
+  createDraft,
+  draftPool,
+  draftToRecords,
+  firstInvalidStep,
+  goalImpact,
+  lastSpent,
+  moveDivider,
+  nextPayDate,
+  payPeriod,
+  sameAmountCount,
+  savingsOf,
+  splitStatus,
+  stepAmount,
 } from './wizard';
 
 const data = buildSeed();
@@ -23,7 +37,13 @@ describe('pay dates', () => {
 describe('draft prefill', () => {
   const d = createDraft(data, today);
   it('prefills from the Sep 26 paycheque', () => {
-    expect(d).toMatchObject({ basedOn: 'p-2025-09-26', net: 264000, payDate: '2025-10-10', source: 'Northwind Ltd.', templateId: 'standard' });
+    expect(d).toMatchObject({
+      basedOn: 'p-2025-09-26',
+      net: 264000,
+      payDate: '2025-10-10',
+      source: 'Northwind Ltd.',
+      templateId: 'standard',
+    });
     expect(d.allocations).toEqual({ chequing: 110000, tfsa: 58000, spending: 52000, emergency: 12000, rrsp: 32000 });
     expect(d.gross! - d.deductions.reduce((a, x) => a + x.amount, 0)).toBe(d.net);
   });
@@ -93,5 +113,22 @@ describe('records', () => {
     expect(firstInvalidStep(d)).toBeUndefined();
     expect(firstInvalidStep({ ...d, net: 0 })).toBe('details');
     expect(firstInvalidStep({ ...d, allocations: { chequing: 300000 } })).toBe('split');
+  });
+});
+
+describe('expected paycheques', () => {
+  it('nothing is due while the current period is running', () => {
+    expect(expectedPaycheques(data.paycheques, today)).toMatchObject({ due: [], next: '2025-10-10' });
+  });
+  it('lists every missed bi-weekly pay date, oldest first', () => {
+    expect(expectedPaycheques(data.paycheques, '2025-10-30')).toMatchObject({ due: ['2025-10-10', '2025-10-24'], next: '2025-11-07' });
+  });
+  it('a pay date of today counts as due', () => {
+    expect(expectedPaycheques(data.paycheques, '2025-10-10').due).toEqual(['2025-10-10']);
+  });
+  it('one-off paycheques and empty workspaces expect nothing', () => {
+    const once = data.paycheques.map((p) => ({ ...p, repeats: 'once' as const }));
+    expect(expectedPaycheques(once, '2026-01-01').due).toEqual([]);
+    expect(expectedPaycheques([], today)).toEqual({ due: [], basis: undefined });
   });
 });

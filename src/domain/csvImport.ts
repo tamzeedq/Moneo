@@ -77,7 +77,7 @@ export function parseAmount(value: string | undefined): Cents | null {
     v = v.slice(1, -1);
   }
   if (/\b(dr|debit)\b/i.test(v)) sign = -1;
-  v = v.replace(/\b(cr|dr|credit|debit|cad)\b/gi, '').replace(/[$\s ]/g, '');
+  v = v.replace(/\b(cr|dr|credit|debit|cad)\b/gi, '').replace(/[$\s\u00a0]/g, '');
   if (/^[-−]/.test(v)) {
     sign *= -1;
     v = v.slice(1);
@@ -162,9 +162,11 @@ export function buildRows(
   mapping: ColumnMapping,
   opts: { accountId: string; existing: Transaction[]; categories: Category[]; dateOrder?: DateOrder },
 ): ImportRow[] {
-  const order = opts.dateOrder ?? detectDateOrder(records.map((r) => (mapping.date ? r[mapping.date] ?? '' : '')));
+  const order = opts.dateOrder ?? detectDateOrder(records.map((r) => (mapping.date ? (r[mapping.date] ?? '') : '')));
   const history = merchantHistory(opts.existing);
-  const seen = new Set(opts.existing.filter((t) => t.accountId === opts.accountId).map((t) => `${t.date}|${t.amount}|${merchantKey(t.merchant)}`));
+  const seen = new Set(
+    opts.existing.filter((t) => t.accountId === opts.accountId).map((t) => `${t.date}|${t.amount}|${merchantKey(t.merchant)}`),
+  );
   return records.map((r, i) => {
     const raw = mapping.merchant ? (r[mapping.merchant] ?? '').trim() : '';
     const date = mapping.date ? parseDate(r[mapping.date] ?? '', order) : null;
@@ -176,7 +178,15 @@ export function buildRows(
       amount = mapping.debit || mapping.credit ? inn - Math.abs(out) : null;
     }
     const merchant = raw ? displayMerchant(raw) : '';
-    const error = !date ? 'Unreadable date' : amount === null ? 'Unreadable amount' : !merchant ? 'No description' : amount === 0 ? 'Zero amount' : undefined;
+    const error = !date
+      ? 'Unreadable date'
+      : amount === null
+        ? 'Unreadable amount'
+        : !merchant
+          ? 'No description'
+          : amount === 0
+            ? 'Zero amount'
+            : undefined;
     const key = `${date}|${amount}|${merchantKey(merchant)}`;
     const duplicate = !error && seen.has(key);
     if (!error) seen.add(key); // also catches repeats inside the file
@@ -185,7 +195,10 @@ export function buildRows(
       date,
       merchant,
       amount,
-      categoryId: amount !== null && amount < 0 ? suggestCategory(raw, history, opts.categories, mapping.category ? r[mapping.category] : undefined) : undefined,
+      categoryId:
+        amount !== null && amount < 0
+          ? suggestCategory(raw, history, opts.categories, mapping.category ? r[mapping.category] : undefined)
+          : undefined,
       duplicate,
       error,
       include: !error && !duplicate,
@@ -205,6 +218,16 @@ export function transactionsCsv(txs: Transaction[], categories: Category[], acco
   const esc = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
   const lines = [...txs]
     .sort((a, b) => b.date.localeCompare(a.date))
-    .map((t) => [t.date, t.merchant, (t.amount / 100).toFixed(2), t.categoryId ? cat.get(t.categoryId) ?? '' : t.paychequeId ? 'Paycheque' : '', acc.get(t.accountId) ?? ''].map(esc).join(','));
+    .map((t) =>
+      [
+        t.date,
+        t.merchant,
+        (t.amount / 100).toFixed(2),
+        t.categoryId ? (cat.get(t.categoryId) ?? '') : t.paychequeId ? 'Paycheque' : '',
+        acc.get(t.accountId) ?? '',
+      ]
+        .map(esc)
+        .join(','),
+    );
   return ['Date,Merchant,Amount,Category,Account', ...lines].join('\n');
 }

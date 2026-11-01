@@ -8,4 +8,8 @@ export function downloadFile(filename: string, content: string, type = 'text/pla
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'export';
+export const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'export';

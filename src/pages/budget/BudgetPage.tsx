@@ -17,7 +17,7 @@ import { Stepper } from '@/components/ui/Stepper';
 import { Swatch } from '@/components/ui/Avatar';
 import { HalfRing } from '@/components/charts/HalfRing';
 import { btn } from '@/components/ui/styles';
-import { toneColor } from '@/pages/wizard/WizardFooter';
+import { toneColor } from '@/components/ui/tone';
 import { toast } from '@/stores/toast';
 
 export function BudgetPage() {
@@ -38,7 +38,9 @@ export function BudgetPage() {
         <PageHeader title="Budget" actions={<ThemeToggle />} />
         <Card className="flex items-center justify-between text-[13px] text-mute">
           Budgets are planned per paycheque.
-          <Link to="/paycheques/new/details" className={btn.primary}>Add a paycheque</Link>
+          <Link to="/paycheques/new/details" className={btn.primary}>
+            Add a paycheque
+          </Link>
         </Card>
       </>
     );
@@ -68,11 +70,13 @@ function BudgetView({ data, p, today, nav }: { data: MoneoData; p: Paycheque; to
   const [edit, setEdit] = useState<{ categoryId: string; plan: Cents }[] | null>(null);
   const summary = budgetSummary(data, p, today);
   const attention = needsAttention(data, p);
-  const spent = new Map(spendByCategory(data.transactions, data.categories, p.periodStart, p.periodEnd).map((c) => [c.category.id, c.spent]));
-  const cats = [...data.categories].sort((a, b) => a.order - b.order);
-  const lines = (edit ?? savedLines.map(({ categoryId, plan }) => ({ categoryId, plan }))).slice().sort(
-    (a, b) => (cats.findIndex((c) => c.id === a.categoryId) - cats.findIndex((c) => c.id === b.categoryId)),
+  const spent = new Map(
+    spendByCategory(data.transactions, data.categories, p.periodStart, p.periodEnd).map((c) => [c.category.id, c.spent]),
   );
+  const cats = [...data.categories].sort((a, b) => a.order - b.order);
+  const lines = (edit ?? savedLines.map(({ categoryId, plan }) => ({ categoryId, plan })))
+    .slice()
+    .sort((a, b) => cats.findIndex((c) => c.id === a.categoryId) - cats.findIndex((c) => c.id === b.categoryId));
   const missing = cats.filter((c) => !lines.some((l) => l.categoryId === c.id));
   const plan = sum(lines.map((l) => l.plan));
   const totalSpent = sum(lines.map((l) => spent.get(l.categoryId) ?? 0));
@@ -94,11 +98,19 @@ function BudgetView({ data, p, today, nav }: { data: MoneoData; p: Paycheque; to
             <ThemeToggle />
             {edit ? (
               <>
-                <button type="button" className={btn.secondary} onClick={() => setEdit(null)}>Cancel</button>
-                <button type="button" className={`${btn.accent} px-4!`} onClick={save}>Save plan</button>
+                <button type="button" className={btn.secondary} onClick={() => setEdit(null)}>
+                  Cancel
+                </button>
+                <button type="button" className={`${btn.accent} px-4!`} onClick={save}>
+                  Save plan
+                </button>
               </>
             ) : (
-              <button type="button" className={`${btn.primary} px-4!`} onClick={() => setEdit(savedLines.map(({ categoryId, plan }) => ({ categoryId, plan })))}>
+              <button
+                type="button"
+                className={`${btn.primary} px-4!`}
+                onClick={() => setEdit(savedLines.map(({ categoryId, plan }) => ({ categoryId, plan })))}
+              >
                 Edit plan
               </button>
             )}
@@ -159,7 +171,11 @@ function BudgetView({ data, p, today, nav }: { data: MoneoData; p: Paycheque; to
                   <span className="h-3 w-0.5 bg-ink" />
                   Today’s pace · day {summary.length - summary.daysLeft} of {summary.length}
                 </span>
-              ) : summary.state === 'past' ? 'Finished period' : 'Upcoming period'
+              ) : summary.state === 'past' ? (
+                'Finished period'
+              ) : (
+                'Upcoming period'
+              )
             }
             className="pb-2"
           />
@@ -181,7 +197,10 @@ function BudgetView({ data, p, today, nav }: { data: MoneoData; p: Paycheque; to
                 <Swatch color={c.color} round />
                 <span className="truncate font-medium">{c.name}</span>
                 <div className="relative h-1.5 rounded-full bg-track">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(l.plan ? s / l.plan : s ? 1 : 0, 1) * 100}%`, background: over ? 'var(--acc)' : c.color }} />
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${Math.min(l.plan ? s / l.plan : s ? 1 : 0, 1) * 100}%`, background: over ? 'var(--acc)' : c.color }}
+                  />
                   {summary.state === 'current' && (
                     <div className="absolute -top-[3px] -bottom-[3px] w-0.5 bg-ink opacity-60" style={{ left: `${summary.pace * 100}%` }} />
                   )}
@@ -209,13 +228,23 @@ function BudgetView({ data, p, today, nav }: { data: MoneoData; p: Paycheque; to
             {edit && missing.length > 0 ? (
               <Popover.Root>
                 <Popover.Trigger asChild>
-                  <button type="button" className="text-left text-[12px] font-normal text-mute hover:text-ink">+ Add category</button>
+                  <button type="button" className="text-left text-[12px] font-normal text-mute hover:text-ink">
+                    + Add category
+                  </button>
                 </Popover.Trigger>
                 <Popover.Portal>
-                  <Popover.Content align="start" sideOffset={6} className="z-50 flex min-w-44 flex-col rounded-[12px] border border-line bg-panel p-1 text-[13px] text-ink shadow-lg">
+                  <Popover.Content
+                    align="start"
+                    sideOffset={6}
+                    className="z-50 flex min-w-44 flex-col rounded-[12px] border border-line bg-panel p-1 text-[13px] text-ink shadow-lg"
+                  >
                     {missing.map((c) => (
                       <Popover.Close asChild key={c.id}>
-                        <button type="button" className="flex items-center gap-2 rounded-[8px] px-2.5 py-2 text-left hover:bg-panel2" onClick={() => setEdit([...edit, { categoryId: c.id, plan: 0 }])}>
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 rounded-[8px] px-2.5 py-2 text-left hover:bg-panel2"
+                          onClick={() => setEdit([...edit, { categoryId: c.id, plan: 0 }])}
+                        >
                           <Swatch color={c.color} round />
                           {c.name}
                         </button>

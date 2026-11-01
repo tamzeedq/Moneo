@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useDialogs } from '@/stores/ui';
-import { paletteShortcut } from '@/components/CommandPalette';
+import { paletteShortcut } from '@/lib/platform';
+import { switchWorkspace, workspace } from '@/data/workspace';
 
 const NAV = [
   { to: '/', label: 'Overview', end: true },
@@ -27,6 +28,17 @@ export function Sidebar() {
         <div className="size-[22px] rounded-[7px] bg-acc" />
         <span className="text-[18px] font-semibold tracking-[-0.02em]">moneo</span>
       </div>
+      {workspace.id === 'demo' && (
+        <div
+          className="-mt-2 flex items-center justify-between rounded-[10px] px-3 py-2 text-[12px]"
+          style={{ background: 'color-mix(in srgb, var(--acc) 13%, transparent)' }}
+        >
+          <span className="font-medium text-acc">Demo data</span>
+          <button type="button" className="text-mute hover:text-ink" onClick={() => switchWorkspace('mine')}>
+            Exit demo
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => openDialog('palette')}

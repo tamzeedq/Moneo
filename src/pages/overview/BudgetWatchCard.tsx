@@ -11,6 +11,7 @@ export function BudgetWatchCard({ data, today }: { data: MoneoData; today: ISODa
   return (
     <Card className="flex flex-col gap-3">
       <CardHeader title="Budget watch" meta={info && `${info.daysUntilNext} days left`} />
+      {rows.length === 0 && <div className="text-[13px] text-mute">Budget a paycheque to watch spending against plan.</div>}
       {rows.map((r) => {
         const over = r.remaining < 0;
         const tone = over ? 'var(--acc)' : 'var(--mute)';
