@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* Map the design tokens into Tailwind so `bg-panel`, `text-mute`, `border-line` etc. work. */
+@theme inline {
+  --font-sans: 'Geist', system-ui, sans-serif;
+
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-nav-on: var(--nav-on);
+  --color-seg: var(--seg);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-faint: var(--faint);
+  --color-acc: var(--acc);
+  --color-pos: var(--pos);
+  --color-inv: var(--inv);
+  --color-inv-ink: var(--inv-ink);
+  --color-inv-mute: var(--inv-mute);
+  --color-inv-track: var(--inv-track);
+  --color-track: var(--track);
+
+  --shadow-tok: var(--shadow);
+
+  --radius-card: 18px;
+  --radius-input: 10px;
+}
+
+/* Base styles live in the base layer so Tailwind utilities can override them. */
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  /* The design uses the browser's default line-height, not Tailwind's 1.5. */
+  html {
+    line-height: normal;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Geist', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--acc);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
